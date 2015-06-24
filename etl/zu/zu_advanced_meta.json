@@ -1,0 +1,8 @@
+{
+"database": "(mysql db name)",
+"dbhost": "(mysql db server FQDN)",
+"dbuser": "(username)",
+"dbpass": "(password)",
+"metricstypes":[["Google", "zu_google_metrics.json", "zubill-", "json", "day"],
+                ["BrandX", "zu_brandx_metrics.json", "brandx-", "csv", "month"]]
+}

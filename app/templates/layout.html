@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+{#
+layout.html - the layout template used by most pages
+#}
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="usage billing metrics">
+    <meta name="author" content="">
+    <title>Datacenter Usage and Billing</title>
+    <link rel="stylesheet" media="all" type="text/css" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" />
+    <link rel="stylesheet" media="all" type="text/css" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css" />
+    <link rel="stylesheet" media="all" type="text/css" href="http://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.0/css/bootstrap-datepicker.standalone.css" />
+
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script type="text/javascript" src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.0/js/bootstrap-datepicker.min.js"></script>
+
+    <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
+    <script type="text/javascript" src="http://dimplejs.org/dist/dimple.v2.1.2.min.js"></script>
+
+
+ <script>
+
+var NAV = {
+    onReady: function() {
+        $("#datetimestart").datepicker({ autoclose: true });
+        $("#datetimeend").datepicker({  autoclose: true });
+        NAV.prvdata = {{ settings.prvarray|tojson|safe }};
+        NAV.teamdata = {{ settings.teamhash|tojson|safe }};
+        NAV.prjdata = {{ settings.prjdict|tojson|safe }};
+        NAV.init();
+        $(".dropdown-menu li a").click( NAV.updateCb );
+        $("button#submit").click( NAV.submitCb );
+        $("#cb").click ( NAV.clearDateCb );
+    },
+     
+    init: function() {
+        Object.keys(NAV.prvdata).forEach(function(key,index) {
+             if (NAV.prvdata[key]) {
+                $('#prvdropdown').append('<li><a role="menuitem" tabindex="-1" data-value="'+key+'" >'+NAV.prvdata[key][0]+'</a></li>');
+            };
+        }, NAV.prvdata);
+        Object.keys(NAV.teamdata).forEach(function(key,index) {
+            if (NAV.teamdata[key]) {
+                $('#teamdropdown').append('<li><a role="menuitem" tabindex="-1" data-value="'+key+'" >'+NAV.teamdata[key]+'</a></li>');
+            };
+        }, NAV.teamdata);
+        Object.keys(NAV.prjdata).forEach(function(key,index) {
+            if (NAV.prjdata[key]) {
+                $('#prjdropdown').append('<li><a role="menuitem" tabindex="-1" data-value="'+key+'" >'+NAV.prjdata[key][0]+'</a></li>');
+            };
+        }, NAV.prjdata);
+    },
+
+     updateCb: function() {
+         $(this).parents(".dropdown").find('.dropdown-toggle').val($(this).data('value'));
+         $(this).parents(".dropdown").find('.dropdown-toggle').text($(this).text());
+     },
+
+     submitCb: function(){
+        var provider = $("#provider").val();
+        var team = $("#team").val();
+        var project = $("#project").val();
+        var start_date = $("#datetimestart").val();
+        var end_date = $("#datetimeend").val();
+        var qstring = "";
+
+        if (start_date != "" && end_date !="") {
+            var time_start =Date.parse(start_date)/1000; 
+            var time_end = Date.parse(end_date)/1000; 
+            qstring = "&time_start="+time_start+"&time_end="+time_end;
+        }
+        if (provider) {
+          qstring += "&prvid="+provider;
+        }
+        if (team) {
+          qstring += "&teamid="+team;
+        }
+        if (project) {
+          qstring += "&prjid="+project;
+        }
+
+        CHART.loadChart(qstring);
+
+     },
+
+     clearDateCb: function() {
+         $('#datetimestart').val("");
+         $('#datetimeend').val("");
+         $('.open').removeClass('open');
+     }
+};
+
+
+
+  </script>
+
+  <style>
+        svg {
+                display: block;
+        }
+        html, body {
+                height: 100%;
+        }
+
+        html, body, .chart, svg {
+            margin: 0px;
+            padding: 0px;
+            height: 400px;
+            width: 100%;
+        }
+        body {
+            min-height: 768px;
+        }
+        .dateholder {
+            width: 220px;
+        }
+  </style>
+
+  </head>
+
+  <body>
+<div class="container-fluid">
+         <nav id="navbar" class="navbar navbar-default navbar-static" role="navigation">
+           <div class="container">
+             <h3>Datacenter Usage and Billing</h3>
+           </div>
+          <ul class="nav navbar-nav label">
+            <li class="navbar-brand">Filter:</li>
+
+            <li class="dropdown">
+            <a href="#" id="provider" role="button" class="dropdown-toggle" data-toggle="dropdown">All Providers <span class="caret"></span></a>
+              <ul class="dropdown-menu" role="menu" aria-labelledby="provider" id="prvdropdown">
+                <li><a role="menuitem" tabindex="-1" data-value="">All Providers</a></li>
+              </ul>
+           </li>
+           <li class="dropdown">
+            <a href="#" id="team" role="button" class="dropdown-toggle" data-toggle="dropdown">All Teams <span class="caret"></span></a>
+              <ul class="dropdown-menu" role="menu" aria-labelledby="team" id="teamdropdown">
+                <li><a role="menuitem" tabindex="-1" data-value="">All Teams</a></li>
+              </ul>
+           </li>
+           <li class="dropdown">
+            <a href="#" id="project" role="button" class="dropdown-toggle" data-toggle="dropdown">All Projects <span class="caret"></span></a>
+              <ul class="dropdown-menu" role="menu" aria-labelledby="project" id="prjdropdown">
+                <li><a role="menuitem" tabindex="-1" data-value="">All Projects</a></li>
+              </ul>
+           </li>
+            <li class="dropdown" id="dropdownli">
+            <a href="#" id="mydate"  role="button" class="dropdown-toggle" data-toggle="dropdown">Date Range <span class="caret" id="nb"></span></a>
+             <ul class="dropdown-menu" id="mydatedropdown" role="menu" aria-labelledby="mydate">
+               <div class="input-group" id="mydates">
+                 <span class="input-group-addon"><i class="glyphicon glyphicon-calendar" id="cb"><small>x</small></i></span>
+                 <input class="form-control" type="text" id="datetimestart"/>
+                 <input class="form-control" type="text" id="datetimeend"/>
+               </div>
+             </ul>
+            </li>
+            <button type="submit" class="btn btn-default" id="submit">Go</button>
+          </ul>
+        </nav> <!-- /navbar -->
+</div><!-- /.container-fluid -->
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-sm-3 col-md-2 sidebar">
+          <ul class="nav nav-sidebar">
+            <li class="active"><a href="/monthlyprovider.html"><i class="fa fa-dashboard"></i>Monthly Provider <span class="sr-only">(current)</span></a></li>
+            <li><a href="/dailyprovider.html"><i class="fa fa-support"></i> Daily Provider </a></li>
+          </ul>
+        </div>
+{% block content %}{% endblock %}
+</div>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+  </body>
+</html>
