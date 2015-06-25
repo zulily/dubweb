@@ -1,37 +1,45 @@
 {% extends "layout.html" %}
 {% block content %}
         <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-           <h4>Daily Cost, by Provider</h4>
+           <h4>Monthly Cost, by Team</h4>
            <div id="chartContainer">
            </div>
         </div>
 
 <script>
+
+
 var CHART = {
     onReady: function() {
         NAV.onReady();
-        CHART.remoteUrl="/data/daily/provider";
-        CHART.providers = {{ settings.providers|tojson|safe }};
-        CHART.svg = dimple.newSvg("#chartContainer",590,400);
+        CHART.remoteUrl="/data/monthly/team";
+        CHART.teams = {{ settings.teams|tojson|safe }};
+        CHART.svg = dimple.newSvg("#chartContainer",590,600);
         CHART.loadChart();
     },
 
     drawGraphs: function (dubdata) {
         CHART.svg.selectAll("*").remove();
-        cdata = dimple.filterData(dubdata,"Provider",CHART.providers);
+        cdata = dimple.filterData(dubdata,"Team",CHART.teams);
+        bdata = dimple.filterData(dubdata,"Budget",["Budget"]);
         dchart = new dimple.chart(CHART.svg);
-        dchart.setBounds(60, 30, 510, 305);
-        x = dchart.addTimeAxis("x", "Month","%Y-%m-%d","%Y-%m-%d");
+        dchart.setBounds(60, 100, 510, 400);
+        x = dchart.addCategoryAxis("x", "Month");
         x.addGroupOrderRule("Month");
         y = dchart.addMeasureAxis("y", "Spend");
-        s1 = dchart.addSeries("Provider", dimple.plot.bar, [x,y]);
+        s1 = dchart.addSeries("Team", dimple.plot.bar, [x,y]);
         s1.data = cdata;
-        mylegend = dchart.addLegend(60, 20, 510, 20, "right");
+        s2 = dchart.addSeries("Budget", dimple.plot.line, [x,y]);
+        s2.data = bdata;
+        s2.interpolation = "step";
+        s2.barGap = 0.05;
+        dchart.assignColor("Budget","red");
+        mylegend = dchart.addLegend(60, 20, 510, 60, "right");
         dchart.draw();
         dchart.legends = [];
 
         CHART.svg.selectAll("title_text")
-            .data(["(Click a provider to show/hide it:)"])
+            .data(["(Click a team to show/hide it:)"])
             .enter()
             .append("text")
             .attr("x", 300)
@@ -41,10 +49,10 @@ var CHART = {
             .style("color", "Black")
             .text(function (d) { return d; });
 
-         filtervalues = dimple.getUniqueValues(dubdata, "Provider");
-         // Get all the rectangles from our now orphaned legend
-         mylegend.shapes.selectAll("rect")
-           // Add a click event to each rectangle
+        filtervalues = dimple.getUniqueValues(dubdata, "Team");
+        // Get all the rectangles from our now orphaned legend
+        mylegend.shapes.selectAll("rect")
+          // Add a click event to each rectangle
           .on("click", function (e) {
             // This indicates whether the item is already visible or not
             var hide = false;
@@ -57,7 +65,7 @@ var CHART = {
                 newfilters.push(f);
               }
             });
-
+            
             // Hide the shape or show it
             if (hide) {
               d3.select(this).style("opacity", 0.2);
@@ -68,12 +76,12 @@ var CHART = {
             // Update the filters
             filtervalues = newfilters;
             // Filter the data
-            s1.data = dimple.filterData(dubdata, "Provider", filtervalues);
+            s1.data = dimple.filterData(dubdata, "Team", filtervalues);
+            s2.data = dimple.filterData(dubdata, "Budget", filtervalues);
             // Passing a duration parameter makes the chart animate. Without
             // it there is no transition
             dchart.draw(800);
           });
-
     },
 
     loadChart: function (qstring){
@@ -97,6 +105,7 @@ var CHART = {
         });
     }
 };
+
 
 $( document ).ready ( CHART.onReady );
 </script>

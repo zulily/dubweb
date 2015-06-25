@@ -14,6 +14,7 @@ layout_admin.html - the layout template used by admin pages
     <link rel="stylesheet" media="all" type="text/css" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" />
     <link rel="stylesheet" media="all" type="text/css" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css" />
     <link rel="stylesheet" media="all" type="text/css" href="http://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.0/css/bootstrap-datepicker.standalone.css" />
+    <link rel="stylesheet" media="all" type="text/css" href="static/css/zulily_dash.css" />
     <link rel="stylesheet" media="all" type="text/css" href="static/css/jsgrid.min.css" />
     <link rel="stylesheet" media="all" type="text/css" href="static/css/jsgrid-theme.min.css" />
 
@@ -109,7 +110,7 @@ var NAV = {
         html, body, .chart, svg {
             margin: 0px;
             padding: 0px;
-            height: 400px;
+            height: 600px;
             width: 100%;
         }
         body {
@@ -153,8 +154,11 @@ var NAV = {
       <div class="row">
         <div class="col-sm-3 col-md-2 sidebar">
           <ul class="nav nav-sidebar">
-            <li class="active"><a href="/monthlyprovider.html"><i class="fa fa-dashboard"></i>Monthly Provider <span class="sr-only">(current)</span></a></li>
-            <li><a href="/dailyprovider.html"><i class="fa fa-support"></i> Daily Provider </a></li>
+            <li><a href="/monthlyprovider.html"><i class="fa fa-dashboard"></i>Datacenter Charts</a></li>
+            <li><a href="/budgets.html"><i class="fa fa-support"></i>Budget Administration</a></li>
+            <li><a href="/providers.html"><i class="fa fa-support"></i>Provider Information</a></li>
+            <li><a href="/teams.html"><i class="fa fa-support"></i>Team Administration</a></li>
+            <li><a href="/projects.html"><i class="fa fa-support"></i>Project Administration</a></li>
           </ul>
         </div>
 {% block content %}{% endblock %}

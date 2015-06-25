@@ -13,14 +13,51 @@ def current_chart_provider_monthly():
                              request.args.get('time_end'))
     myids = dubwebdb.Ids(request.args.get('prvid'), request.args.get('teamid'),
                          request.args.get('prjid'))
-    return dubwebdb.get_data_provider(mytime, myids, True)
+    return dubwebdb.get_data_provider(mytime, myids, add_budget=True)
 
 @app.route('/data/daily/provider')
 def current_chart_provider_daily():
     """ API for daily provider chart """
-    mytime = dubwebdb.CTimes("%Y-%m-%d", request.args.get('time_start'),
-                    request.args.get('time_end'))
+    mytime = dubwebdb.CTimes("%Y-%m-%d",
+                             request.args.get('time_start'),
+                             request.args.get('time_end'))
     myids = dubwebdb.Ids(request.args.get('prvid'), request.args.get('teamid'),
                          request.args.get('prjid'))
-    return dubwebdb.get_data_provider(mytime, myids, False)
+    return dubwebdb.get_data_provider(mytime, myids, add_budget=False)
+
+@app.route('/data/monthly/team')
+def current_chart_team_monthly():
+    """ API for monthly Team chart """
+    mytime = dubwebdb.CTimes("%Y-%m", request.args.get('time_start'),
+                             request.args.get('time_end'))
+    myids = dubwebdb.Ids(request.args.get('prvid'), request.args.get('teamid'),
+                         request.args.get('prjid'))
+    return dubwebdb.get_data_team(mytime, myids, add_budget=True)
+
+@app.route('/data/daily/team')
+def current_chart_team_daily():
+    """ API for daily Team chart """
+    mytime = dubwebdb.CTimes("%Y-%m-%d", request.args.get('time_start'),
+                             request.args.get('time_end'))
+    myids = dubwebdb.Ids(request.args.get('prvid'), request.args.get('teamid'),
+                         request.args.get('prjid'))
+    return dubwebdb.get_data_team(mytime, myids, add_budget=False)
+
+@app.route('/data/monthly/project')
+def current_chart_project_monthly():
+    """ API for monthly Project chart """
+    mytime = dubwebdb.CTimes("%Y-%m", request.args.get('time_start'),
+                             request.args.get('time_end'))
+    myids = dubwebdb.Ids(request.args.get('prvid'), request.args.get('teamid'),
+                         request.args.get('prjid'))
+    return dubwebdb.get_data_project(mytime, myids, add_budget=False)
+
+@app.route('/data/daily/project')
+def current_chart_project_daily():
+    """ API for daily Project chart """
+    mytime = dubwebdb.CTimes("%Y-%m-%d", request.args.get('time_start'),
+                             request.args.get('time_end'))
+    myids = dubwebdb.Ids(request.args.get('prvid'), request.args.get('teamid'),
+                         request.args.get('prjid'))
+    return dubwebdb.get_data_project(mytime, myids, add_budget=False)
 

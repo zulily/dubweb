@@ -1,0 +1,6 @@
+{
+"db": "zu",
+"dbhost"   : "(mysql db server FQDN)",
+"dbuser"   : "(username_rw)",
+"dbpass"   : "(password)",
+}

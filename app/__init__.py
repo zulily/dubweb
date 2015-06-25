@@ -8,9 +8,9 @@ import sys
 
 app = Flask(__name__)
 import logging
-file_handler = logging.FileHandler('/var/log/dubweb/dubweb.log')
-file_handler.setLevel(logging.WARNING)
-app.logger.addHandler(file_handler)
+FH = logging.FileHandler('/var/log/dubweb/dubweb.log')
+FH.setLevel(logging.WARNING)
+app.logger.addHandler(FH)
 
 from app import views
 from app import apis

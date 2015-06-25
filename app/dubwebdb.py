@@ -280,3 +280,121 @@ def get_data_provider(mytime, ids, add_budget):
         dubconn.close()
     return json.dumps(datalist)
 
+def get_data_team(mytime, ids, add_budget):
+    """
+    Given a time, and optional filters for providers, team, project,
+    Return dubweb values for each team, by given time period.
+    """
+    teams = {}
+    months = {}
+    datalist = []
+    query_params = []
+
+    settings = utils.load_json_definition_file(SETTINGS_FILE)
+    success, dubconn = utils.open_monitoring_db(settings['dbhost'],
+                                                settings['dbuser'],
+                                                settings['dbpass'],
+                                                settings['db_db'])
+
+    if success:
+        mytime = get_date_filters(mytime)
+        teams = get_teams(ids.team, dubconn)
+
+        query = """
+                   SELECT DATE_FORMAT(datetime,%s), teamid,
+                   CAST(IFNULL(sum(cost),0) AS SIGNED INT) FROM metricdata
+                   WHERE datetime BETWEEN FROM_UNIXTIME(%s) AND
+                   FROM_UNIXTIME(%s) """
+        query_params.append(mytime.dformat)
+        query_params.append(mytime.start)
+        query_params.append(mytime.end)
+        if ids.team is not None:
+            query += " AND teamid = %s "
+            query_params.append(str(ids.team))
+        if ids.project is not None:
+            query += " AND prjid = %s "
+            query_params.append(str(ids.project))
+        if ids.prv is not None:
+            query += " AND prvid = %s "
+            query_params.append(str(ids.prv))
+        query += " GROUP BY teamid, DATE_FORMAT(datetime,%s)"
+        query_params.append(mytime.dformat)
+
+        dubmetrics = utils.get_from_db(query, query_params, dubconn)
+
+
+        for dubmetric in dubmetrics:
+            if len(dubmetric) > 0 and dubmetric[2] is not None:
+                data_point = {}
+                data_point["Month"] = dubmetric[0]
+                data_point["Team"] = teams[dubmetric[1]]
+                data_point["Spend"] = dubmetric[2]
+                datalist.append(data_point)
+                months[dubmetric[0]] = 1
+
+        if add_budget:
+            datalist = get_budget_totals(ids, months, datalist, dubconn)
+
+
+        dubconn.close()
+    return json.dumps(datalist)
+
+def get_data_project(mytime, ids, add_budget):
+    """
+    Given a time, and optional filters for providers, team, project,
+    Return dubweb values for each project, by given time period.
+    """
+    projects = {}
+    months = {}
+    datalist = []
+    query_params = []
+
+    settings = utils.load_json_definition_file(SETTINGS_FILE)
+    success, dubconn = utils.open_monitoring_db(settings['dbhost'],
+                                                settings['dbuser'],
+                                                settings['dbpass'],
+                                                settings['db_db'])
+
+    if success:
+        mytime = get_date_filters(mytime)
+        projects = get_projects(ids.prv, ids.team, ids.project, dubconn)
+
+        query = """
+                   SELECT DATE_FORMAT(datetime,%s), prjid,
+                   CAST(IFNULL(sum(cost),0) AS SIGNED INT) FROM metricdata
+                   WHERE datetime BETWEEN FROM_UNIXTIME(%s) AND
+                   FROM_UNIXTIME(%s) """
+        query_params.append(mytime.dformat)
+        query_params.append(mytime.start)
+        query_params.append(mytime.end)
+        if ids.team is not None:
+            query += " AND teamid = %s "
+            query_params.append(str(ids.team))
+        if ids.project is not None:
+            query += " AND prjid = %s "
+            query_params.append(str(ids.project))
+        if ids.prv is not None:
+            query += " AND prvid = %s "
+            query_params.append(str(ids.prv))
+        query += " GROUP BY prjid, DATE_FORMAT(datetime,%s)"
+        query_params.append(mytime.dformat)
+
+        dubmetrics = utils.get_from_db(query, query_params, dubconn)
+
+
+        for dubmetric in dubmetrics:
+            if len(dubmetric) > 0 and dubmetric[2] is not None:
+                data_point = {}
+                data_point["Month"] = dubmetric[0]
+                data_point["Project"] = projects[dubmetric[1]][0]
+                data_point["Spend"] = dubmetric[2]
+                datalist.append(data_point)
+                months[dubmetric[0]] = 1
+
+        if add_budget:
+            datalist = get_budget_totals(ids, months, datalist, dubconn)
+
+
+        dubconn.close()
+    return json.dumps(datalist)
+

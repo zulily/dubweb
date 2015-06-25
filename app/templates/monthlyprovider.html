@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 {% block content %}
-        <div class="container">
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
            <h4>Monthly Cost, by Provider</h4>
            <div id="chartContainer">
            </div>
@@ -77,6 +77,7 @@ var CHART = {
             filtervalues = newfilters;
             // Filter the data
             s1.data = dimple.filterData(dubdata, "Provider", filtervalues);
+            s2.data = dimple.filterData(dubdata, "Budget", filtervalues);
             // Passing a duration parameter makes the chart animate. Without
             // it there is no transition
             dchart.draw(800);

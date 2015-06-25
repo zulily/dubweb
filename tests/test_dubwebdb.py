@@ -91,7 +91,7 @@ class TestDubwebDB(unittest.TestCase):
 
     def test_daily_default_get_data_provider(self):
         """ Test the API used for dubwebdb daily provider
-            chart, returning the default (last 3 months) dataset. """
+            chart, returning the default (last 30 days) dataset. """
         default_daily_time = dubwebdb.CTimes(d_format="%Y-%m-%d",
                                     start_time=None, end_time=None)
         all_providers_projects_teams = dubwebdb.Ids(
@@ -102,6 +102,66 @@ class TestDubwebDB(unittest.TestCase):
                                          all_providers_projects_teams,
                                          add_budget=True)
         for series in json.loads(daily_chart_data):
+            self.assertEqual(len(series), 3)
+
+    def test_monthly_default_get_data_team(self):
+        """ Test the API used for dubwebdb monthly team
+            chart, returning the default (last 3 months) dataset. """
+        default_monthly_time = dubwebdb.CTimes(d_format="%Y-%m",
+                                    start_time=None, end_time=None)
+        all_providers_projects_teams = dubwebdb.Ids(
+                                         prv_id=None, team_id=None,
+                                         project_id=None)
+        monthly_chart_data = dubwebdb.get_data_team(
+                                         default_monthly_time,
+                                         all_providers_projects_teams,
+                                         add_budget=True)
+        for series in json.loads(monthly_chart_data):
+            self.assertEqual(len(series), 3)
+
+    def test_daily_default_get_data_team(self):
+        """ Test the API used for dubwebdb daily team
+            chart, returning the default (last 30 days) dataset. """
+        default_monthly_time = dubwebdb.CTimes(d_format="%Y-%m-%d",
+                                    start_time=None, end_time=None)
+        all_providers_projects_teams = dubwebdb.Ids(
+                                         prv_id=None, team_id=None,
+                                         project_id=None)
+        monthly_chart_data = dubwebdb.get_data_team(
+                                         default_monthly_time,
+                                         all_providers_projects_teams,
+                                         add_budget=False)
+        for series in json.loads(monthly_chart_data):
+            self.assertEqual(len(series), 3)
+
+    def test_monthly_default_get_data_project(self):
+        """ Test the API used for dubwebdb monthly project
+            chart, returning the default (last 3 months) dataset. """
+        default_monthly_time = dubwebdb.CTimes(d_format="%Y-%m",
+                                    start_time=None, end_time=None)
+        all_providers_projects_teams = dubwebdb.Ids(
+                                         prv_id=None, team_id=None,
+                                         project_id=None)
+        monthly_chart_data = dubwebdb.get_data_project(
+                                         default_monthly_time,
+                                         all_providers_projects_teams,
+                                         add_budget=True)
+        for series in json.loads(monthly_chart_data):
+            self.assertEqual(len(series), 3)
+
+    def test_daily_default_get_data_project(self):
+        """ Test the API used for dubwebdb daily project 
+            chart, returning the default (last 30 days) dataset. """
+        default_monthly_time = dubwebdb.CTimes(d_format="%Y-%m-%d",
+                                    start_time=None, end_time=None)
+        all_providers_projects_teams = dubwebdb.Ids(
+                                         prv_id=None, team_id=None,
+                                         project_id=None)
+        monthly_chart_data = dubwebdb.get_data_project(
+                                         default_monthly_time,
+                                         all_providers_projects_teams,
+                                         add_budget=False)
+        for series in json.loads(monthly_chart_data):
             self.assertEqual(len(series), 3)
 
 

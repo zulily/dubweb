@@ -1,7 +1,7 @@
 {% extends "layout_admin.html" %}
 {% block content %}
 <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-  <h3>Budget Administration</h3>
+  <h3>Team Administration</h3>
   <div id="jsGrid"></div>
     <script>
         $(function() {
@@ -18,7 +18,7 @@
                 loadData: function(filter) {
                     return $.ajax({
                         type: "GET",
-                        url: "/data/budgets/list",
+                        url: "/data/teams/list",
                         data: filter,
                         dataType: "json"
                     });
@@ -26,7 +26,7 @@
                 updateItem: function(item) {
                     return $.ajax({
                         type: "POST",
-                        url: "/data/budgets/edit",
+                        url: "/data/teams/edit",
                         data: item,
                         dataType: "json"
                     });
@@ -34,7 +34,7 @@
                 insertItem: function(item) {
                     return $.ajax({
                         type: "POST",
-                        url: "/data/budgets/insert",
+                        url: "/data/teams/insert",
                         data: item,
                         dataType: "json"
                     });
@@ -42,7 +42,7 @@
                 deleteItem: function(item) {
                     return $.ajax({
                         type: "DELETE",
-                        url: "/data/budgets/delete",
+                        url: "/data/teams/delete",
                         data: item,
                         dataType: "json"
                     });
@@ -51,14 +51,10 @@
  
  
             fields: [
-                { name: "ID", type: "number", width: 10, editing: false,
+                { name: "ID", type: "number", width: 5, editing: false,
                   inserting: false},
-                { name: "Budget", type: "number", width: 10 },
-                { name: "Month", type: "text", width: 10 },
-                { name: "TeamID", type: "number", width: 10 },
-                { name: "ProviderID", type: "number", width: 10  },
-                { name: "Comment", type: "text", width: 50 },
-                { type: "control", width:10 }
+                { name: "Name", type: "text", width: 20 },
+                { type: "control", width: 5 }
             ]
             });
         });

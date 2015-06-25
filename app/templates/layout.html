@@ -14,6 +14,7 @@ layout.html - the layout template used by most pages
     <link rel="stylesheet" media="all" type="text/css" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" />
     <link rel="stylesheet" media="all" type="text/css" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css" />
     <link rel="stylesheet" media="all" type="text/css" href="http://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.0/css/bootstrap-datepicker.standalone.css" />
+    <link rel="stylesheet" media="all" type="text/css" href="static/css/zulily_dash.css" />
 
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script type="text/javascript" src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
@@ -110,7 +111,7 @@ var NAV = {
         html, body, .chart, svg {
             margin: 0px;
             padding: 0px;
-            height: 400px;
+            height: 600px;
             width: 100%;
         }
         body {
@@ -125,7 +126,7 @@ var NAV = {
 
   <body>
 <div class="container-fluid">
-         <nav id="navbar" class="navbar navbar-default navbar-static" role="navigation">
+         <nav id="navbar" class="navbar-default navbar-header" role="navigation">
            <div class="container">
              <h3>Datacenter Usage and Billing</h3>
            </div>
@@ -168,8 +169,13 @@ var NAV = {
       <div class="row">
         <div class="col-sm-3 col-md-2 sidebar">
           <ul class="nav nav-sidebar">
-            <li class="active"><a href="/monthlyprovider.html"><i class="fa fa-dashboard"></i>Monthly Provider <span class="sr-only">(current)</span></a></li>
+            <li><a href="/monthlyprovider.html"><i class="fa fa-support"></i>Monthly Provider </a></li>
             <li><a href="/dailyprovider.html"><i class="fa fa-support"></i> Daily Provider </a></li>
+            <li><a href="/monthlyteam.html"><i class="fa fa-support"></i>Monthly Team </a></li>
+            <li><a href="/dailyteam.html"><i class="fa fa-support"></i> Daily Team </a></li>
+            <li><a href="/monthlyproject.html"><i class="fa fa-support"></i>Monthly Project </a></li>
+            <li><a href="/dailyproject.html"><i class="fa fa-support"></i> Daily Project </a></li>
+            <li><a href="/budgets.html"><i class="fa fa-support"></i> Dubweb Administration </a></li>
           </ul>
         </div>
 {% block content %}{% endblock %}

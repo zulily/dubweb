@@ -1,8 +1,13 @@
 ## DUBWEB - The Datacenter Usage and Billing project
-I wrote this project to help make sense of data center spend across a hybrid topology.
-
--Brion Stone
+Flask app, db model, and python ETL for tracking/admin of datacenter spend.
  
+Example datacenter view:
+![dubweb datacenter chart](dubweb_monthly_provider.png)
+
+
+Example admin view:
+![dubweb admin grid](dubweb_budget_admin.png)
+
 
 ## Structure
 
@@ -11,10 +16,11 @@ The root directory has the WSGI file. I suggest using nginx, with uwsgi-emperor 
  
 ### /misc directory (Storage)
 /misc has the MySQL db model for the dubwebdb.  After creating the database:
-1. Populate the providers table, using one row per unique billing provider.
+1. Populate the providers table, using one row per unique billing provider. 
 2. Populate the teams table, using one row per logical team/unit.
 3. Populate the projects table, assigning the team and provider to the project.  Note: projects span neither teams nor providers.
 4. Populate the budgets table; assign monthly budget for each team's provider.
+5. After initial provisioning, you may use the admin pages for modifying teams, projects, and budgets.
 
 ### /etl directory (Collection)
 /etl has the python ETL that will pull the data as instructed by the files in the /etl/zu directory. To start collecting data:
@@ -58,6 +64,10 @@ Load the data into DUBWEB once a day by:
   1. Tests for the dubwebdb.py python module can be run using:
 ```
  nosetests `tests/test_dubwebdb.py`
+```
+  2. Tests for the admindb.by python module can be run using:
+```
+ nosetests `tests/test_admindb.py`
 ```
 
 ## Dependencies
