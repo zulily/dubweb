@@ -21,9 +21,11 @@ dubweb helper library
 
 import datetime as dt
 from dateutil.relativedelta import relativedelta
+from collections import defaultdict
 import time
 import json
 import app.utils as utils
+import re
 
 from app import app
 
@@ -220,6 +222,59 @@ def get_budget_totals(ids, months, data_list, dub_conn):
 
     return data_list
 
+def get_provider_metric_buckets(provider_id, dub_conn):
+    """
+    Given provider id (of a datacenter instance)
+    Return a dictionary of metrics where, for a given metric,
+    you have ruleid/bucket, groupname, textmatch, scalefactor, scaleunit.
+    """
+
+    ruledict = {}
+    metricbuckets = {}
+    query_params = []
+
+    query = """
+            SELECT ruleid, groupname, textmatch,
+            scalefactor, scaleunit FROM matchrules
+            WHERE prvid = %s
+            ORDER BY rank ASC 
+            """
+    query_params.append(str(provider_id))
+
+    rows = None
+    cursor = dub_conn.cursor()
+    try:
+        cursor.execute(query, tuple(query_params))
+        rows = cursor.fetchall()
+        for ruleid, groupname, textmatch, scalefactor, scaleunit in rows:
+            ruledict[ruleid] = [int(ruleid), groupname, textmatch,
+                                scalefactor, scaleunit]
+    except Exception, err:
+        app.logger.error("mysql exception: %s", err.message)
+        app.logger.error("from query: %s", query)
+
+    query = """
+            SELECT metricid, metricname 
+            FROM metrictypes WHERE prvid = %s
+            """
+    rows = None
+    try:
+        cursor.execute(query, tuple(query_params))
+        rows = cursor.fetchall()
+        for row in rows:
+            metricbuckets[row[0]] = row[1]
+    except Exception, err:
+        app.logger.error("mysql exception: %s", err.message)
+        app.logger.error("from query: %s", query)
+
+    for metric_id in metricbuckets.iterkeys():
+        for rule_id in ruledict.iterkeys():
+            if re.match(ruledict[rule_id][2], metricbuckets[metric_id]):
+                metricbuckets[metric_id] = ruledict[rule_id]
+                break
+
+    return metricbuckets
+
 
 def get_data_provider(mytime, ids, add_budget):
     """
@@ -396,5 +451,63 @@ def get_data_project(mytime, ids, add_budget):
 
 
         dubconn.close()
+    return json.dumps(datalist)
+
+def get_data_workload(mytime, ids, add_budget):
+    """
+    Given a time, provider and project,
+    Return dubweb values for each workload, by given time period.
+    """
+    buckets = {}
+    met_sums = defaultdict(dict)
+    datalist = []
+    query_params = []
+
+    settings = utils.load_json_definition_file(SETTINGS_FILE)
+    success, dubconn = utils.open_monitoring_db(settings['dbhost'],
+                                                settings['dbuser'],
+                                                settings['dbpass'],
+                                                settings['db_db'])
+
+    if success:
+        mytime = get_date_filters(mytime)
+        buckets = get_provider_metric_buckets(ids.prv, dubconn)
+
+        query = """
+                   SELECT DATE_FORMAT(datetime,%s), metric,
+                   CAST(IFNULL(sum(cost),0) AS SIGNED INT) FROM metricdata
+                   WHERE datetime BETWEEN FROM_UNIXTIME(%s) AND
+                   FROM_UNIXTIME(%s) AND prvid = %s AND prjid = %s 
+                   GROUP BY metric, DATE_FORMAT(datetime,%s) """
+        query_params.append(mytime.dformat)
+        query_params.append(mytime.start)
+        query_params.append(mytime.end)
+        query_params.append(str(ids.prv))
+        query_params.append(str(ids.project))
+        query_params.append(mytime.dformat)
+
+        dubmetrics = utils.get_from_db(query, query_params, dubconn)
+
+        # Group metrics per day, bucket
+        for dubmetric in dubmetrics:
+            if dubmetric[2] != 0:
+                try:
+                    met_sums[dubmetric[0]][buckets[dubmetric[1]][0]][0] = \
+                     met_sums[dubmetric[0]][buckets[dubmetric[1]][0]][0] + \
+                     dubmetric[2]
+                except KeyError:
+                    met_sums[dubmetric[0]][buckets[dubmetric[1]][0]] = \
+                       [dubmetric[2], buckets[dubmetric[1]][1]]
+
+        for day, metrics in met_sums.iteritems():
+            for metval in metrics.iterkeys():
+                data_point = {}
+                data_point["Month"] = day
+                data_point["Workload"] = metrics[metval][1]
+                data_point["Spend"] = int(metrics[metval][0])
+                datalist.append(data_point)
+
+    dubconn.close()
+
     return json.dumps(datalist)
 

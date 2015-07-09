@@ -44,6 +44,12 @@ def project_daily():
          daily project API """
     return render_template('dailyproject.html')
 
+@app.route('/dailyworkload.html')
+def workload_daily():
+    """  Daily workload web page, which uses jquery to load
+         daily workload API """
+    return render_template('dailyworkload.html')
+
 @app.route('/budgets.html')
 def admin_budgets():
     """  Budgets web page with data grid

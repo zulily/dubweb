@@ -14,6 +14,7 @@ import unittest
 from app import dubwebdb
 from app import utils
 
+
 class TestDubwebDB(unittest.TestCase):
 
     @classmethod
@@ -73,6 +74,18 @@ class TestDubwebDB(unittest.TestCase):
         self.assertGreater(date_filters.end,
                            date_filters.start + (29*24*60*60))
 
+    def test_get_provider_metric_buckets(self):
+        """ Test the metric bucketing mechanism, which 
+            groups, by provider, metric names so provider workloads
+            (similar resources like VM_2proc, VM_4proc can be
+            aggregated to a single VM bucket.  """
+        buckets = dubwebdb.get_provider_metric_buckets(provider_id=1,
+                                             dub_conn=self._conn)
+        for bucket_id in buckets.iterkeys():
+            self.assertEqual(len(buckets[bucket_id]), 5)
+
+
+    # Chart tests follow
     def test_monthly_default_get_data_provider(self):
         """ Test the API used for dubwebdb monthly provider
             chart, returning the default (last 3 months) dataset. """
@@ -160,6 +173,21 @@ class TestDubwebDB(unittest.TestCase):
         monthly_chart_data = dubwebdb.get_data_project(
                                          default_monthly_time,
                                          all_providers_projects_teams,
+                                         add_budget=False)
+        for series in json.loads(monthly_chart_data):
+            self.assertEqual(len(series), 3)
+
+    def test_daily_default_get_data_workload(self):
+        """ Test the API used for dubwebdb daily workload 
+            chart, returning the default (last 30 days) dataset. """
+        default_monthly_time = dubwebdb.CTimes(d_format="%Y-%m-%d",
+                                    start_time=None, end_time=None)
+        one_provider_project = dubwebdb.Ids(
+                                         prv_id=1, team_id=None,
+                                         project_id=2)
+        monthly_chart_data = dubwebdb.get_data_workload(
+                                         default_monthly_time,
+                                         one_provider_project,
                                          add_budget=False)
         for series in json.loads(monthly_chart_data):
             self.assertEqual(len(series), 3)

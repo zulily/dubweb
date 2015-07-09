@@ -1,39 +1,42 @@
 {% extends "layout.html" %}
 {% block content %}
         <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-           <h4>Monthly Cost, by Project</h4>
+           <h4>Daily Cost, by Workload</h4>
            <div id="chartContainer">
            </div>
         </div>
 
 <script>
-
-
 var CHART = {
     onReady: function() {
         NAV.onReady();
-        CHART.remoteUrl="/data/monthly/project";
-        CHART.projects = {{ settings.projects|tojson|safe }};
+        CHART.remoteUrl="/data/daily/workload";
         CHART.svg = dimple.newSvg("#chartContainer",590,600);
-        CHART.loadChart();
+        CHART.promptValues();
+    },
+
+    promptValues: function() {
+        $('#provider').trigger('click');
+        alert("Choose a Provider and Project, then select Go");
     },
 
     drawGraphs: function (dubdata) {
         CHART.svg.selectAll("*").remove();
-        cdata = dimple.filterData(dubdata,"Project",CHART.projects);
+        filtervalues = dimple.getUniqueValues(dubdata, "Workload");
+        cdata = dimple.filterData(dubdata,"Workload",filtervalues);
         dchart = new dimple.chart(CHART.svg);
-        dchart.setBounds(60, 100, 550, 400);
-        x = dchart.addCategoryAxis("x", "Month");
+        dchart.setBounds(60, 100, 510, 400);
+        x = dchart.addTimeAxis("x", "Month","%Y-%m-%d","%Y-%m-%d");
         x.addGroupOrderRule("Month");
         y = dchart.addMeasureAxis("y", "Spend");
-        s1 = dchart.addSeries("Project", dimple.plot.bar, [x,y]);
+        s1 = dchart.addSeries("Workload", dimple.plot.bar, [x,y]);
         s1.data = cdata;
-        mylegend = dchart.addLegend(60, 20, 510, 80, "right");
+        mylegend = dchart.addLegend(60, 20, 510, 60, "right");
         dchart.draw();
         dchart.legends = [];
 
         CHART.svg.selectAll("title_text")
-            .data(["(Click a team to show/hide it:)"])
+            .data(["(Click a provider to show/hide it:)"])
             .enter()
             .append("text")
             .attr("x", 300)
@@ -43,10 +46,9 @@ var CHART = {
             .style("color", "Black")
             .text(function (d) { return d; });
 
-        filtervalues = dimple.getUniqueValues(dubdata, "Project");
-        // Get all the rectangles from our now orphaned legend
-        mylegend.shapes.selectAll("rect")
-          // Add a click event to each rectangle
+         // Get all the rectangles from our now orphaned legend
+         mylegend.shapes.selectAll("rect")
+           // Add a click event to each rectangle
           .on("click", function (e) {
             // This indicates whether the item is already visible or not
             var hide = false;
@@ -59,7 +61,7 @@ var CHART = {
                 newfilters.push(f);
               }
             });
-            
+
             // Hide the shape or show it
             if (hide) {
               d3.select(this).style("opacity", 0.2);
@@ -70,11 +72,12 @@ var CHART = {
             // Update the filters
             filtervalues = newfilters;
             // Filter the data
-            s1.data = dimple.filterData(dubdata, "Project", filtervalues);
+            s1.data = dimple.filterData(dubdata, "Workload", filtervalues);
             // Passing a duration parameter makes the chart animate. Without
             // it there is no transition
             dchart.draw(800);
           });
+
     },
 
     loadChart: function (qstring){
@@ -98,7 +101,6 @@ var CHART = {
         });
     }
 };
-
 
 $( document ).ready ( CHART.onReady );
 </script>
