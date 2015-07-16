@@ -21,7 +21,7 @@ dubweb helper library
 
 import datetime as dt
 from dateutil.relativedelta import relativedelta
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 import time
 import json
 import app.utils as utils
@@ -229,7 +229,7 @@ def get_provider_metric_buckets(provider_id, dub_conn):
     you have ruleid/bucket, groupname, textmatch, scalefactor, scaleunit.
     """
 
-    ruledict = {}
+    ruledict = OrderedDict()
     metricbuckets = {}
     query_params = []
 
@@ -268,7 +268,7 @@ def get_provider_metric_buckets(provider_id, dub_conn):
         app.logger.error("from query: %s", query)
 
     for metric_id in metricbuckets.iterkeys():
-        for rule_id in ruledict.iterkeys():
+        for rule_id in ruledict.keys():
             if re.match(ruledict[rule_id][2], metricbuckets[metric_id]):
                 metricbuckets[metric_id] = ruledict[rule_id]
                 break

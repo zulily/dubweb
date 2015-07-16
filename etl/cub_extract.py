@@ -20,7 +20,6 @@
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
-
 """
 
 import calendar
@@ -56,6 +55,7 @@ class DUBLoad(object):
         self._metric_date = metric_date
         self._metric_format = prv_def[3]
         self._timeunit = prv_def[4]
+        self._delimiter = prv_def[5]
         self._metric_types = self._get_metric_types()
         self._projects = self._get_projects_for_provider()
         self._teams = self._get_teams()
@@ -90,16 +90,21 @@ class DUBLoad(object):
                 self._teams = self._add_team('unk')
                 last_team_id = sorted(self._teams.keys())[-1]
                 self._projects = self._add_project('unk',
-                                       result_array[1], last_team_id)
+                                                   result_array[1],
+                                                   last_team_id)
             if result_array[2] not in self._metric_types:
-                self._metric_types = self._add_metric_type(
-                                     result_array[2], result_array[4])
+                self._metric_types = self._add_metric_type(result_array[2],
+                                                           result_array[4])
             # get team id before remapping prjid
             result_array.append(self._projects[result_array[1]][1])
             # clean up prjid, etc.
             result_array[1] = self._projects[result_array[1]][0]
             result_array[2] = self._metric_types[result_array[2]][0]
             self.current_stats.append(result_array)
+
+        # hourly data needs to be aggregated
+        if self._timeunit == "hour":
+            self.current_stats = self._aggregate_hourly_data()
 
 
     def _parse_billing_csv(self, csvmetrics, metric_evals):
@@ -117,16 +122,20 @@ class DUBLoad(object):
                     #support has no projectNumber
                     value = "0"
                 result_array.append(value)
+            if not result_array[0] or result_array[0].isalpha() or \
+                   result_array[2] is self._delimiter:
+                continue
             if result_array[1] not in self._projects:
                 # add a new team (can delete later if necessary)
                 # add the new project under the new team
                 self._teams = self._add_team('unk')
                 last_team_id = sorted(self._teams.keys())[-1]
                 self._projects = self._add_project('unk',
-                                      result_array[1], last_team_id)
+                                                   result_array[1],
+                                                   last_team_id)
             if result_array[2] not in self._metric_types:
-                self._metric_types = self._add_metric_type(
-                                     result_array[2], result_array[4])
+                self._metric_types = self._add_metric_type(result_array[2],
+                                                           result_array[4])
             # get team id before remapping prjid
             result_array.append(self._projects[result_array[1]][1])
             # clean up prjid, etc.
@@ -138,6 +147,10 @@ class DUBLoad(object):
                 self._add_daily_data(result_array)
             else:
                 self.current_stats.append(result_array)
+
+        # hourly data needs to be aggregated
+        if self._timeunit == "hour":
+            self.current_stats = self._aggregate_hourly_data()
 
 
     def _add_daily_data(self, in_array):
@@ -153,8 +166,25 @@ class DUBLoad(object):
         for i in range(1, daycount):
             thedate = dateparts[0] + '-' + dateparts[1] + '-' + str(i)
             thedate += 'T00:00:00'
-            self.current_stats.append([thedate, in_array[1], in_array[2], 86400,
-                                      'seconds', cost, in_array[6]])
+            self.current_stats.append([thedate, in_array[1], in_array[2],
+                                       86400, 'seconds', cost, in_array[6]])
+
+
+    def _aggregate_hourly_data(self):
+        """
+        Aggregate hourly data for the previous day (modified cost/hours)
+        """
+        daily_stats = defaultdict(dict)
+        for metric in self.current_stats:
+            try:
+                daily_stats[metric[2]][3] = \
+                 float(daily_stats[metric[2]][3]) + float(metric[3])
+                daily_stats[metric[2]][5] = \
+                 float(daily_stats[metric[2]][5]) + float(metric[5])
+            except KeyError:
+                daily_stats[metric[2]] = metric
+                daily_stats[metric[2]][0] = self._metric_date + 'T00:00:00'
+        return daily_stats.values()
 
 
     def _post_process_stats(self, taxrate, summary_metrics):
@@ -174,7 +204,7 @@ class DUBLoad(object):
                 valuestring = metric[6]
                 teamid = eval(valuestring)
                 self.current_stats.append([thedate, projectid, metricid,
-                                       '86400', 'seconds', cost, teamid])
+                                           '86400', 'seconds', cost, teamid])
 
 
     def _get_teams(self):
@@ -353,12 +383,12 @@ class DUBLoad(object):
             trunctime = mytime.replace(second=0, microsecond=0)
             project = metric[1]
             metricid = metric[2]
-            value = int(metric[3])
+            value = int(round(float(metric[3])))
             cost = int((float(metric[5])*100)+0.5) / 100.0
             team_id = metric[6]
             try:
                 cursor.execute(query, (trunctime, metricid, value,
-                               project, cost, self._prvid, team_id))
+                                       project, cost, self._prvid, team_id))
             except MySQLdb.Error, err:
                 print "Error %d: %s" % (err.args[0], err.args[1])
                 sys.exit(1)
@@ -462,14 +492,14 @@ def parse_arguments():
     Collect command-line arguments
     """
     my_parser = argparse.ArgumentParser(
-             description='Extract metrics from Zabbix and load into perf db.')
+                                        description='Extract metrics from Zabbix and load into perf db.')
     my_parser.add_argument('-f', dest='filename',
-                        help='path to json file with metrics rules',
-                        required=True)
+                           help='path to json file with metrics rules',
+                           required=True)
     my_parser.add_argument('--verbose', '-v', dest='verbose',
-                        action='store_true', help='enable verbose messages')
+                           action='store_true', help='enable verbose messages')
     my_parser.add_argument('--debug', '-d', dest='debug', action='store_true',
-                        help='enable debug-only mode (no mysql writing)')
+                           help='enable debug-only mode (no mysql writing)')
     return my_parser
 
 def configure_logging(args):
