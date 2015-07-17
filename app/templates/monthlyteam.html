@@ -21,7 +21,7 @@ var CHART = {
     drawGraphs: function (dubdata) {
         CHART.svg.selectAll("*").remove();
         cdata = dimple.filterData(dubdata,"Team",CHART.teams);
-        bdata = dimple.filterData(dubdata,"Budget",["Budget"]);
+        bdata = dimple.filterData(dubdata,"Budget",CHART.teams);
         dchart = new dimple.chart(CHART.svg);
         dchart.setBounds(60, 100, 510, 400);
         x = dchart.addCategoryAxis("x", "Month");
@@ -30,7 +30,7 @@ var CHART = {
         s1 = dchart.addSeries("Team", dimple.plot.bar, [x,y]);
         s1.data = cdata;
         s2 = dchart.addSeries("Budget", dimple.plot.line, [x,y]);
-        s2.data = bdata;
+        s2.data = CHART.aggregateBudgets(bdata);
         s2.interpolation = "step";
         s2.barGap = 0.05;
         dchart.assignColor("Budget","red");
@@ -59,7 +59,7 @@ var CHART = {
             var newfilters = [];
             // If the filters contain the clicked shape hide it
             filtervalues.forEach(function (f) {
-              if (f === e.aggField.slice(-1)[0]) {
+              if (f !== "Budget" && f === e.aggField.slice(-1)[0]) {
                 hide = true;
               } else {
                 newfilters.push(f);
@@ -77,11 +77,29 @@ var CHART = {
             filtervalues = newfilters;
             // Filter the data
             s1.data = dimple.filterData(dubdata, "Team", filtervalues);
-            s2.data = dimple.filterData(dubdata, "Budget", filtervalues);
+            budgetdata = dimple.filterData(dubdata, "Budget", filtervalues);
+            s2.data = CHART.aggregateBudgets(budgetdata);
             // Passing a duration parameter makes the chart animate. Without
             // it there is no transition
             dchart.draw(800);
           });
+    },
+
+    aggregateBudgets: function (dataset){
+         var agg_budget = [];
+         dataset.forEach(function (f) {
+             if (agg_budget[f.Month]) {
+                 agg_budget[f.Month][Spend] += f.Spend;
+             }
+             else {
+                 var tmpbudget = [];
+                 tmpbudget["Month"] = f.Month;
+                 tmpbudget["Spend"] = f.Spend;
+                 tmpbudget["Budget"] = "Budget";
+                 agg_budget.push(tmpbudget);
+             }
+         });
+        return agg_budget;
     },
 
     loadChart: function (qstring){

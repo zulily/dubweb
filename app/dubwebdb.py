@@ -192,14 +192,15 @@ def get_projects(provider_id, team_id, project_id, dub_conn):
 
     return projectdict
 
-def get_budget_totals(ids, months, data_list, dub_conn):
+
+def get_budget_by_providers(ids, months, data_list, names, dub_conn):
     """
-    Given optional filters for providers,team
-    Return dubweb budget values by month.
+    Given optional filters for providers and team
+    Return dubweb budget values by provider and month.
     """
 
     query_params = []
-    query = "SELECT month, CAST(IFNULL(sum(budget),0) AS SIGNED INT)"
+    query = "SELECT month, CAST(IFNULL(sum(budget),0) AS SIGNED INT), prvid"
     query += " FROM budgetdata WHERE 1 "
     if ids.team is not None:
         query += " AND teamid = %s "
@@ -207,7 +208,7 @@ def get_budget_totals(ids, months, data_list, dub_conn):
     if ids.prv is not None:
         query += " AND prvid = %s "
         query_params.append(str(ids.prv))
-    query += " GROUP BY month"
+    query += " GROUP BY prvid, month"
 
     budget_list = utils.get_from_db(query, tuple(query_params), dub_conn)
     for budget in budget_list:
@@ -217,7 +218,38 @@ def get_budget_totals(ids, months, data_list, dub_conn):
             data_point = {}
             data_point["Month"] = budget[0]
             data_point["Spend"] = int(budget[1])
-            data_point["Budget"] = "Budget"
+            data_point["Budget"] = names[budget[2]][0]
+            data_list.append(data_point)
+
+    return data_list
+
+
+def get_budget_by_teams(ids, months, data_list, names, dub_conn):
+    """
+    Given optional filters for providers and team
+    Return dubweb budget values by team and month.
+    """
+
+    query_params = []
+    query = "SELECT month, CAST(IFNULL(sum(budget),0) AS SIGNED INT), teamid"
+    query += " FROM budgetdata WHERE 1 "
+    if ids.team is not None:
+        query += " AND teamid = %s "
+        query_params.append(str(ids.team))
+    if ids.prv is not None:
+        query += " AND prvid = %s "
+        query_params.append(str(ids.prv))
+    query += " GROUP BY teamid, month"
+
+    budget_list = utils.get_from_db(query, tuple(query_params), dub_conn)
+    for budget in budget_list:
+        if len(budget) > 0 and budget[1] is not None:
+            if budget[0] not in months:
+                continue
+            data_point = {}
+            data_point["Month"] = budget[0]
+            data_point["Spend"] = int(budget[1])
+            data_point["Budget"] = names[budget[2]]
             data_list.append(data_point)
 
     return data_list
@@ -329,7 +361,8 @@ def get_data_provider(mytime, ids, add_budget):
                 months[dubmetric[0]] = 1
 
         if add_budget:
-            datalist = get_budget_totals(ids, months, datalist, dubconn)
+            datalist = get_budget_by_providers(ids, months, datalist,
+                                               providers, dubconn)
 
 
         dubconn.close()
@@ -388,7 +421,8 @@ def get_data_team(mytime, ids, add_budget):
                 months[dubmetric[0]] = 1
 
         if add_budget:
-            datalist = get_budget_totals(ids, months, datalist, dubconn)
+            datalist = get_budget_by_teams(ids, months, datalist,
+                                           teams, dubconn)
 
 
         dubconn.close()
@@ -445,10 +479,6 @@ def get_data_project(mytime, ids, add_budget):
                 data_point["Spend"] = dubmetric[2]
                 datalist.append(data_point)
                 months[dubmetric[0]] = 1
-
-        if add_budget:
-            datalist = get_budget_totals(ids, months, datalist, dubconn)
-
 
         dubconn.close()
     return json.dumps(datalist)
