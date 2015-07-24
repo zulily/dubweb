@@ -70,3 +70,21 @@ def current_chart_workload_daily():
                          request.args.get('prjid'))
     return dubwebdb.get_data_workload(mytime, myids, add_budget=False)
 
+@app.route('/est/monthly/provider')
+def future_chart_provider_monthly():
+    """ API for estimating monthly provider chart """
+    mytime = dubwebdb.CTimes("%Y-%m", request.args.get('time_start'),
+                             request.args.get('time_end'))
+    myids = dubwebdb.Ids(request.args.get('prvid'), request.args.get('teamid'),
+                         request.args.get('prjid'))
+    return dubwebdb.estimate_data_provider(mytime, myids, add_budget=True)
+
+@app.route('/est/monthly/team')
+def future_chart_team_monthly():
+    """ API for estimating monthly team chart """
+    mytime = dubwebdb.CTimes("%Y-%m", request.args.get('time_start'),
+                             request.args.get('time_end'))
+    myids = dubwebdb.Ids(request.args.get('prvid'), request.args.get('teamid'),
+                         request.args.get('prjid'))
+    return dubwebdb.estimate_data_team(mytime, myids, add_budget=True)
+

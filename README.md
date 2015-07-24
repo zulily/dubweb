@@ -1,5 +1,5 @@
 ## DUBWEB - The Datacenter Usage and Billing project
-Flask app, db model, and python ETL for tracking/admin of datacenter spend.
+Flask app, db model, and python ETL for tracking/admin/forecasting of datacenter spend.
  
 Example datacenter view:
 ![dubweb datacenter chart](dubweb_monthly_provider.png)
@@ -21,6 +21,7 @@ The root directory has the WSGI file. I suggest using nginx, with uwsgi-emperor 
 3. Populate the projects table, assigning the team and provider to the project.  Note: projects span neither teams nor providers.
 4. Populate the budgets table; assign monthly budget for each team's provider.
 5. After initial provisioning, you may use the admin pages for modifying teams, projects, and budgets.
+6. You may decide to use the matchrules.csv for characterizing workloads
 
 ### /etl directory (Collection)
 /etl has the python ETL that will pull the data as instructed by the files in the /etl/zu directory. To start collecting data:
@@ -80,4 +81,5 @@ The project uses the following python packages (installed via pip)
 * uwsgi
 * mysql-python
 * python-dateutil
+* numpy
 

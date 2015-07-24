@@ -193,5 +193,39 @@ class TestDubwebDB(unittest.TestCase):
             self.assertEqual(len(series), 3)
 
 
+    def test_monthly_default_estimate_data_provider(self):
+        """ Test the API used for dubwebdb estimate monthly provider
+            chart, returning the default (current, current + 1,
+            current + 2)  dataset. """
+        default_monthly_time = dubwebdb.CTimes(d_format="%Y-%m",
+                                    start_time=None, end_time=None)
+        all_providers_projects_teams = dubwebdb.Ids(
+                                         prv_id=None, team_id=None,
+                                         project_id=None)
+        monthly_chart_data = dubwebdb.estimate_data_provider(
+                                         default_monthly_time,
+                                         all_providers_projects_teams,
+                                         add_budget=True)
+        for series in json.loads(monthly_chart_data):
+            self.assertEqual(len(series), 3)
+
+
+    def test_monthly_default_estimate_data_team(self):
+        """ Test the API used for dubwebdb estimate monthly team
+            chart, returning the default (current, current + 1,
+            current + 2)  dataset. """
+        default_monthly_time = dubwebdb.CTimes(d_format="%Y-%m",
+                                    start_time=None, end_time=None)
+        all_providers_projects_teams = dubwebdb.Ids(
+                                         prv_id=None, team_id=None,
+                                         project_id=None)
+        monthly_chart_data = dubwebdb.estimate_data_team(
+                                         default_monthly_time,
+                                         all_providers_projects_teams,
+                                         add_budget=True)
+        for series in json.loads(monthly_chart_data):
+            self.assertEqual(len(series), 3)
+
+
 if __name__ == "__main__":
     unittest.main()

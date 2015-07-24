@@ -1,0 +1,131 @@
+{% extends "layout.html" %}
+{% block content %}
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+           <h4>Estimated Monthly Cost, by Provider</h4>
+           <div id="chartContainer">
+           </div>
+        </div>
+
+<script>
+
+
+var CHART = {
+    onReady: function() {
+        NAV.onReady();
+        CHART.remoteUrl="/est/monthly/provider";
+        CHART.providers = {{ settings.providers|tojson|safe }};
+        CHART.svg = dimple.newSvg("#chartContainer",590,400);
+        CHART.loadChart();
+    },
+
+    drawGraphs: function (dubdata) {
+        CHART.svg.selectAll("*").remove();
+        cdata = dimple.filterData(dubdata,"Provider",CHART.providers);
+        bdata = dimple.filterData(dubdata,"Budget",CHART.providers);
+        dchart = new dimple.chart(CHART.svg);
+        dchart.setBounds(60, 30, 510, 305);
+        x = dchart.addCategoryAxis("x", "Month");
+        x.addGroupOrderRule("Month");
+        y = dchart.addMeasureAxis("y", "Spend");
+        s1 = dchart.addSeries("Provider", dimple.plot.bar, [x,y]);
+        s1.data = cdata;
+        s2 = dchart.addSeries("Budget", dimple.plot.line, [x,y]);
+        s2.data = CHART.aggregateBudgets(bdata);
+        s2.interpolation = "step";
+        s2.barGap = 0.05;
+        dchart.assignColor("Budget","red");
+        mylegend = dchart.addLegend(60, 20, 510, 20, "right");
+        dchart.draw();
+        dchart.legends = [];
+
+        CHART.svg.selectAll("title_text")
+            .data(["(Click a provider to show/hide it:)"])
+            .enter()
+            .append("text")
+            .attr("x", 300)
+            .attr("y", 10)
+            .style("font-family", "sans-serif")
+            .style("font-size", "10px")
+            .style("color", "Black")
+            .text(function (d) { return d; });
+
+        filtervalues = dimple.getUniqueValues(dubdata, "Provider");
+        // Get all the rectangles from our now orphaned legend
+        mylegend.shapes.selectAll("rect")
+          // Add a click event to each rectangle
+          .on("click", function (e) {
+            // This indicates whether the item is already visible or not
+            var hide = false;
+            var newfilters = [];
+            // If the filters contain the clicked shape hide it
+            filtervalues.forEach(function (f) {
+              if (f !== "Budget" && f === e.aggField.slice(-1)[0]) {
+                hide = true;
+              } else {
+                newfilters.push(f);
+              }
+            });
+            // Hide the shape or show it
+            if (hide) {
+              d3.select(this).style("opacity", 0.2);
+            } else {
+              newfilters.push(e.aggField.slice(-1)[0]);
+              d3.select(this).style("opacity", 0.8);
+            }
+            // Update the filters
+            filtervalues = newfilters;
+            // Filter the data
+            s1.data = dimple.filterData(dubdata, "Provider", filtervalues);
+            budgetdata = dimple.filterData(dubdata, "Budget", filtervalues);
+            s2.data = CHART.aggregateBudgets(budgetdata);
+            // Passing a duration parameter makes the chart animate. Without
+            // it there is no transition
+            dchart.draw(800);
+          });
+    },
+
+    aggregateBudgets: function (dataset){
+         var agg_budget = [];
+         dataset.forEach(function (f) {
+             if (agg_budget[f.Month]) {
+                 agg_budget[f.Month][Spend] += f.Spend; 
+             }             
+             else { 
+                 var tmpbudget = [];
+                 tmpbudget["Month"] = f.Month;
+                 tmpbudget["Spend"] = f.Spend;
+                 tmpbudget["Budget"] = "Budget";
+                 agg_budget.push(tmpbudget);
+             }
+         });
+        return agg_budget;
+    },
+
+    loadChart: function (qstring){
+        querypath = CHART.remoteUrl;
+        if (qstring) {
+            querypath += "?" + qstring;
+        }
+        $.ajax({
+            url: querypath,
+            dataType: 'json',
+            cache: true,
+            timeout: 20000,
+            success: function(data) {
+                // $('#output ul').append('<li>The feed loads fine');
+                CHART.drawGraphs(data);
+                //setTimeout(loadChart, 60000);
+            },
+            error: function(){
+                setTimeout(CHART.loadChart, 5000);
+            }
+        });
+    }
+};
+
+
+$( document ).ready ( CHART.onReady );
+</script>
+
+
+{% endblock %}

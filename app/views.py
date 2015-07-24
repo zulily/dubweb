@@ -20,6 +20,12 @@ def prov_daily():
          daily provider API """
     return render_template('dailyprovider.html')
 
+@app.route('/estimateprovider.html')
+def prov_est_monthly():
+    """  Monthly provider estimates, which uses jquery to load
+         estimate monthly provider API """
+    return render_template('estimateprovider.html')
+
 @app.route('/monthlyteam.html')
 def team_monthly():
     """  Monthly team web page, which uses jquery to load
@@ -31,6 +37,12 @@ def team_daily():
     """  Daily team web page, which uses jquery to load
          daily team API """
     return render_template('dailyteam.html')
+
+@app.route('/estimateteam.html')
+def team_est_monthly():
+    """  Monthly team estimates, which uses jquery to load
+         estimate monthly team API """
+    return render_template('estimateteam.html')
 
 @app.route('/monthlyproject.html')
 def project_monthly():
