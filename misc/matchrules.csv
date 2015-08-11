@@ -2,7 +2,7 @@
 2,20,GCE VMs,com.google.cloud/services/compute-engine/Vmimage,1,/ 86400,VMs
 3,21,GCE VMs (Licensed),com.google.cloud/services/compute-engine/Licensed,1,/ 86400,VMs
 4,22,GCE VM Storage,com.google.cloud/services/compute-engine/Storage,1,/ 86400000000000,GB-days
-5,23,GCE VM Discount,com.google.cloud/services/compute-engine/SustainedUsageDiscount,1,/ 86400,VMs
+5,15,GCE VM Discount,com.google.cloud/services/compute-engine/.*SustainedUsageDiscount,1,/ 86400,VMs
 6,25,GC Support,com.google.cloud/services/support,1,* 1,USD
 7,30,GBQ Storage,com.google.cloud/services/big-query/Storage,1,/ 86400000000000,GB-days
 8,31,GBQ Analysis,com.google.cloud/services/big-query/Analysis,1,/ 1000000000,GB

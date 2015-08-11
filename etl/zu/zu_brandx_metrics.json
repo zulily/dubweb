@@ -1,5 +1,5 @@
 {
-"permetric": ["self._metric_date + 'T00:00:00'", "metric[2]", 
+"permetric": [["self._metric_date + 'T00:00:00'", "metric[2]", 
               "metric[1]", "1", 
-              "self._timeunit", "metric[3]" ]
+              "self._timeunit", "metric[3]" ]]
 }

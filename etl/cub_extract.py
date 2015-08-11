@@ -60,93 +60,53 @@ class DUBLoad(object):
         self._projects = self._get_projects_for_provider()
         self._teams = self._get_teams()
 
-        if self._metric_format == "json":
-            self._parse_billing_json(metrics, metric_defs["permetric"])
-        elif self._metric_format == "csv":
-            self._parse_billing_csv(metrics, metric_defs["permetric"])
+        self._parse_billing(metrics, metric_defs["permetric"])
 
         if 'various' in metric_defs:
             taxrate = self._get_provider_taxrate()
             self._post_process_stats(taxrate, metric_defs['various'])
 
-    def _parse_billing_json(self, my_metrics, metric_evals):
+    def _parse_billing(self, my_metrics, metric_list):
         """
         Given a set of billing metrics, calculate the final (per day)
         metrics for the given metrics provider.
         """
 
         for metric in my_metrics:
-            result_array = []
-            for metric_eval in metric_evals:
-                try:
-                    value = eval(metric_eval)
-                except KeyError:
-                    #support has no projectNumber
-                    value = "0"
-                result_array.append(value)
-            if result_array[1] not in self._projects:
-                # add a new team (can delete later if necessary)
-                # add the new project under the new team
-                self._teams = self._add_team('unk')
-                last_team_id = sorted(self._teams.keys())[-1]
-                self._projects = self._add_project('unk',
-                                                   result_array[1],
-                                                   last_team_id)
-            if result_array[2] not in self._metric_types:
-                self._metric_types = self._add_metric_type(result_array[2],
-                                                           result_array[4])
-            # get team id before remapping prjid
-            result_array.append(self._projects[result_array[1]][1])
-            # clean up prjid, etc.
-            result_array[1] = self._projects[result_array[1]][0]
-            result_array[2] = self._metric_types[result_array[2]][0]
-            self.current_stats.append(result_array)
-
-        # hourly data needs to be aggregated
-        if self._timeunit == "hour":
-            self.current_stats = self._aggregate_hourly_data()
-
-
-    def _parse_billing_csv(self, csvmetrics, metric_evals):
-        """
-        Given a set of csv billing data,
-        compute provider/team/project daily bill.
-        """
-
-        for metric in csvmetrics:
-            result_array = []
-            for metric_eval in metric_evals:
-                try:
-                    value = eval(metric_eval)
-                except KeyError:
-                    #support has no projectNumber
-                    value = "0"
-                result_array.append(value)
-            if not result_array[0] or result_array[0].isalpha() or \
-                   result_array[2] is self._delimiter:
-                continue
-            if result_array[1] not in self._projects:
-                # add a new team (can delete later if necessary)
-                # add the new project under the new team
-                self._teams = self._add_team('unk')
-                last_team_id = sorted(self._teams.keys())[-1]
-                self._projects = self._add_project('unk',
-                                                   result_array[1],
-                                                   last_team_id)
-            if result_array[2] not in self._metric_types:
-                self._metric_types = self._add_metric_type(result_array[2],
-                                                           result_array[4])
-            # get team id before remapping prjid
-            result_array.append(self._projects[result_array[1]][1])
-            # clean up prjid, etc.
-            result_array[1] = self._projects[result_array[1]][0]
-            result_array[2] = self._metric_types[result_array[2]][0]
-
-            #generate daily data if necessary
-            if self._timeunit == "month":
-                self._add_daily_data(result_array)
-            else:
-                self.current_stats.append(result_array)
+            for metric_evals in metric_list:
+                result_array = []
+                for metric_eval in metric_evals:
+                    try:
+                        value = eval(metric_eval)
+                    except KeyError:
+                        #support has no projectNumber
+                        value = "0"
+                    result_array.append(value)
+                if not result_array[0] or result_array[0].isalpha() or \
+                   result_array[2] is self._delimiter or \
+                   result_array[5] == '0':
+                    continue
+                if result_array[1] not in self._projects:
+                    # add a new team (can delete later if necessary)
+                    # add the new project under the new team
+                    self._teams = self._add_team('unk')
+                    last_team_id = sorted(self._teams.keys())[-1]
+                    self._projects = self._add_project('unk',
+                                                       result_array[1],
+                                                       last_team_id)
+                if result_array[2] not in self._metric_types:
+                    self._metric_types = self._add_metric_type(result_array[2],
+                                                               result_array[4])
+                # get team id before remapping prjid
+                result_array.append(self._projects[result_array[1]][1])
+                # clean up prjid, etc.
+                result_array[1] = self._projects[result_array[1]][0]
+                result_array[2] = self._metric_types[result_array[2]][0]
+                #generate daily data if necessary
+                if self._timeunit == "month":
+                    self._add_daily_data(result_array)
+                else:
+                    self.current_stats.append(result_array)
 
         # hourly data needs to be aggregated
         if self._timeunit == "hour":
@@ -491,8 +451,7 @@ def parse_arguments():
     """
     Collect command-line arguments
     """
-    my_parser = argparse.ArgumentParser(
-                                        description='Extract metrics from Zabbix and load into perf db.')
+    my_parser = argparse.ArgumentParser(description='Extract metrics from Zabbix and load into perf db.')
     my_parser.add_argument('-f', dest='filename',
                            help='path to json file with metrics rules',
                            required=True)

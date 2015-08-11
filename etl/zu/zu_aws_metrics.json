@@ -1,6 +1,6 @@
 {
-"permetric": ["metric[13]", "metric[2]", 
+"permetric": [["metric[13]", "metric[2]", 
               "metric[4] + self._delimiter + metric[8]", "metric[15]", 
-              "metric[12][:47].strip()", "metric[17]" ],
+              "metric[12][:47].strip()", "metric[17]" ]],
 "various": [["Tax", "self.current_stats[0][0]", "self._metric_types[metric[0]][0]", "self._projects[metric[0]][0]", "self._metric_types[metric[0]][1]", "(sum(float(row[5]) for row in self.current_stats) * taxrate/100)","self._projects[metric[0]][1]"]]
 }
