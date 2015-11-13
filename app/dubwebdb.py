@@ -72,7 +72,7 @@ def get_date_filters(my_time):
         if my_time.start is None or my_time.end is None:
             my_end_dt = dt.datetime.now() + relativedelta(day=31)
             my_time.end = int(my_end_dt.strftime('%s'))
-            my_start_dt = my_end_dt + relativedelta(months=-3)
+            my_start_dt = my_end_dt + relativedelta(months=-3, day=31)
             my_time.start = int(my_start_dt.strftime('%s'))
     else:
         # dformat is "%Y-%m-%d"
@@ -320,8 +320,8 @@ def compute_month_stats(slice_len, stat_array):
     sdict['std'] = np.std(stat_array)
     if not slice_len:
         slice_len = sdict['len']
-    sdict['slice_avg'] = np.mean(stat_array[:slice_len-1])
-    sdict['slice_len'] = len(stat_array[:slice_len-1])
+    sdict['slice_avg'] = np.mean(stat_array[:slice_len])
+    sdict['slice_len'] = len(stat_array[:slice_len])
 
     return sdict
 
