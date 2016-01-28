@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 {#
-layout_dc.html - the layout template used by datacenter pages
+layout_cap.html - the layout template used by capacity pages
 #}
 
 <html lang="en">
@@ -15,16 +15,56 @@ layout_dc.html - the layout template used by datacenter pages
     <link rel="stylesheet" media="all" type="text/css" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css" />
     <link rel="stylesheet" media="all" type="text/css" href="http://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.0/css/bootstrap-datepicker.standalone.css" />
     <link rel="stylesheet" media="all" type="text/css" href="static/css/zulily_dash.css" />
-    <link rel="stylesheet" media="all" type="text/css" href="static/css/jsgrid.min.css" />
-    <link rel="stylesheet" media="all" type="text/css" href="static/css/jsgrid-theme.min.css" />
 
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script type="text/javascript" src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.0/js/bootstrap-datepicker.min.js"></script>
-    <script type="text/javascript" src="static/js/jsgrid.min.js"></script>
 
     <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
     <script type="text/javascript" src="http://dimplejs.org/dist/dimple.v2.1.2.min.js"></script>
+
+
+ <script>
+
+var NAV = {
+    onReady: function() {
+        NAV.capdata = {{ csettings.caparray|tojson|safe }};
+        NAV.init();
+        $(".dropdown-menu li a").click( NAV.updateCb );
+        $("button#submit").click( NAV.submitCb );
+        $("#cb").click ( NAV.clearDateCb );
+    },
+     
+    init: function() {
+        Object.keys(NAV.capdata).forEach(function(key,index) {
+             if (NAV.capdata[key]) {
+                $('#capdropdown').append('<li><a role="menuitem" tabindex="-1" data-value="'+key+'" >'+NAV.capdata[key][1]+'</a></li>');
+            };
+        }, NAV.capdata);
+    },
+
+     updateCb: function() {
+         $(this).parents(".dropdown").find('.dropdown-toggle').val($(this).data('value'));
+         $(this).parents(".dropdown").find('.dropdown-toggle').text($(this).text());
+     },
+
+     submitCb: function(){
+        var capacity_ids = $("#capacity").val();
+        var qstring = "";
+
+        if (capacity_ids) {
+          qstring += "?ids="+capacity_ids;
+        }
+        CHART.loadEstData(qstring);
+        CHART.loadActData(qstring);
+
+     }
+
+};
+
+
+
+  </script>
 
   <style>
         svg {
@@ -52,22 +92,29 @@ layout_dc.html - the layout template used by datacenter pages
 
   <body>
 <div class="container-fluid">
-         <nav id="navbar" class="navbar navbar-default navbar-static" role="navigation">
+         <nav id="navbar" class="navbar-default navbar-header" role="navigation">
            <div class="container">
-             <h2>Datacenter Usage and Billing</h2>
-             <h3> Custom Datacenter Reports</h3>
+             <h3>Datacenter Usage and Billing</h3>
            </div>
+          <ul class="nav navbar-nav label">
+            <li class="navbar-brand">Filter:</li>
+
+            <li class="dropdown">
+            <a href="#" id="capacity" role="button" class="dropdown-toggle" data-toggle="dropdown">Capacity Metrics <span class="caret"></span></a>
+              <ul class="dropdown-menu" role="menu" aria-labelledby="capacity" id="capdropdown">
+              </ul>
+           </li>
+            <button type="submit" class="btn btn-default" id="submit">Go</button>
+          </ul>
         </nav> <!-- /navbar -->
 </div><!-- /.container-fluid -->
     <div class="container-fluid">
       <div class="row">
         <div class="col-sm-3 col-md-2 sidebar">
           <ul class="nav nav-sidebar">
-            <li><a href="/monthlyprovider.html"><i class="fa fa-dashboard"></i>Datacenter Charts</a></li>
-            <li><a href="/budgets.html"><i class="fa fa-support"></i>Budget Administration</a></li>
-            <li><a href="/providers.html"><i class="fa fa-support"></i>Provider Information</a></li>
-            <li><a href="/teams.html"><i class="fa fa-support"></i>Team Administration</a></li>
-            <li><a href="/projects.html"><i class="fa fa-support"></i>Project Administration</a></li>
+            <li><a href="/monthlyprovider.html"><i class="fa fa-support"></i>Cost Reports </a></li>
+            <li><a href="/hostmap.html"><i class="fa fa-support"></i> Host Map Reports </a></li>
+            <li><a href="/budgets.html"><i class="fa fa-support"></i> Budget Administration </a></li>
           </ul>
         </div>
 {% block content %}{% endblock %}

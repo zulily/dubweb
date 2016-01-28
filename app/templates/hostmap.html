@@ -1,0 +1,95 @@
+{% extends "layout_dc.html" %}
+{% block content %}
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+           <h4>IAD Cloud VM load per physical host</h4>
+           <div class="input-group">
+             <input type="text" name="search" class="form-control" placeholder="site-web" value="" id="keyw"/>
+             <span class="input-group-btn">
+               <button class="btn btn-default" OnClick="CHART.filterVMs()">Filter VMs</button>
+             </span>
+           </div>
+           <div id="chartContainer">
+           </div>
+        </div>
+
+<script>
+var CHART = {
+    onReady: function() {
+        CHART.remoteUrl="/data/rackspace/hostmap";
+        CHART.svg = dimple.newSvg("#chartContainer",590,400);
+        CHART.loadChart("?dc=iad");
+    },
+
+    drawGraphs: function (dubdata) {
+        CHART.dubdata = dubdata;
+        CHART.dchart = new dimple.chart(CHART.svg, CHART.dubdata);
+        CHART.dchart.setBounds(60, 50, 510, 350);
+        xAxis = CHART.dchart.addCategoryAxis("x", "Host");
+        CHART.dchart.addMeasureAxis("y", "Load");
+        s1 = CHART.dchart.addSeries("VMs", dimple.plot.bar);
+        s1.data = CHART.dubdata;
+        CHART.dchart.draw();
+        xAxis.shapes.selectAll("text").remove();
+    },
+
+    loadChart: function (qstring){
+        querypath = CHART.remoteUrl;
+        if (qstring) {
+            querypath += qstring;
+        }
+        $.ajax({
+            url: querypath,
+            dataType: 'json',
+            cache: true,
+            timeout: 30000,
+            success: function(data) {
+                // $('#output ul').append('<li>The feed loads fine');
+                CHART.drawGraphs(data);
+                //setTimeout(loadChart, 60000);
+            },
+            error: function(){
+                setTimeout(CHART.loadChart, 5000);
+            }
+        });
+    },
+    filterVMs: function () {
+        var input = document.getElementById('keyw');
+        keyword = input.value;
+        cdata = CHART.searchData(CHART.dubdata,"VMs",keyword);
+        s1.data = cdata;
+        CHART.dchart.draw(100);
+        xAxis.shapes.selectAll("text").remove();
+    },
+
+    // Copyright: 2015 AlignAlytics
+    // License: "https://github.com/PMSI-AlignAlytics/dimple/blob/master/MIT-LICENSE.txt"
+    // Source: /src/methods/filterData.js (modified)
+    // Help: http://github.com/PMSI-AlignAlytics/dimple/wiki/dimple#wiki-filterData
+    searchData: function (data, field, keyword) {
+        var returnData = data;
+        if (field !== null && keyword !== null && keyword !== undefined) {
+            // Build an array from a single filter value or use the array
+            // The data to return
+            returnData = [];
+            // Iterate all the data
+            data.forEach(function (d) {
+                // If an invalid field is passed, just pass the data
+                if (d[field] === null) {
+                    returnData.push(d);
+                } else {
+                    if (d[field].search(keyword) > -1) {
+                        returnData.push(d);
+                    }
+                }
+            }, this);
+        }
+        // Return the filtered data
+        return returnData;
+    }
+};
+
+$( document ).ready ( CHART.onReady );
+</script>
+
+
+{% endblock %}

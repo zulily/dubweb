@@ -1,0 +1,9 @@
+{
+"db": "zu",
+"dbhost"   : "(mysql db server FQDN)",
+"dbuser"   : "(username_rw)",
+"dbpass"   : "(password)",
+"adm_user" : "(basic_auth_username)",
+"adm_pass" : "(basic_auth_password)",
+"cloning_ok" : (1 if enabled)
+}

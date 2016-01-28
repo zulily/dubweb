@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+{% extends "layout_csv.html" %}
 {% block content %}
         <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
            <h4>Monthly Cost, by Provider</h4>
@@ -23,7 +23,7 @@ var CHART = {
         cdata = dimple.filterData(dubdata,"Provider",CHART.providers);
         bdata = dimple.filterData(dubdata,"Budget",CHART.providers);
         dchart = new dimple.chart(CHART.svg);
-        dchart.setBounds(60, 30, 510, 305);
+        dchart.setBounds(60, 50, 510, 350);
         x = dchart.addCategoryAxis("x", "Month");
         x.addGroupOrderRule("Month");
         y = dchart.addMeasureAxis("y", "Spend");
@@ -99,6 +99,14 @@ var CHART = {
              }
          });
         return agg_budget;
+    },
+
+    loadCSV: function (qstring){
+        querypath = CHART.remoteUrl;
+        if (qstring) {
+            querypath += "?" + qstring;
+            window.location.replace(querypath);
+        }
     },
 
     loadChart: function (qstring){

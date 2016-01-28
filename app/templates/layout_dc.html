@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+{#
+layout_dc.html - the layout template used by datacenter pages
+#}
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="usage billing metrics">
+    <meta name="author" content="">
+    <title>Datacenter Usage and Billing</title>
+    <link rel="stylesheet" media="all" type="text/css" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" />
+    <link rel="stylesheet" media="all" type="text/css" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css" />
+    <link rel="stylesheet" media="all" type="text/css" href="http://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.0/css/bootstrap-datepicker.standalone.css" />
+    <link rel="stylesheet" media="all" type="text/css" href="static/css/zulily_dash.css" />
+    <link rel="stylesheet" media="all" type="text/css" href="static/css/jsgrid.min.css" />
+    <link rel="stylesheet" media="all" type="text/css" href="static/css/jsgrid-theme.min.css" />
+
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script type="text/javascript" src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.0/js/bootstrap-datepicker.min.js"></script>
+    <script type="text/javascript" src="static/js/jsgrid.min.js"></script>
+
+    <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
+    <script type="text/javascript" src="http://dimplejs.org/dist/dimple.v2.1.2.min.js"></script>
+
+  <style>
+        svg {
+                display: block;
+        }
+        html, body {
+                height: 100%;
+        }
+
+        html, body, .chart, svg {
+            margin: 0px;
+            padding: 0px;
+            height: 600px;
+            width: 100%;
+        }
+        body {
+            min-height: 768px;
+        }
+        .dateholder {
+            width: 220px;
+        }
+  </style>
+
+  </head>
+
+  <body>
+<div class="container-fluid">
+         <nav id="navbar" class="navbar navbar-default navbar-static" role="navigation">
+           <div class="container">
+             <h2>Datacenter Usage and Billing</h2>
+             <h3> Custom Datacenter Reports</h3>
+           </div>
+        </nav> <!-- /navbar -->
+</div><!-- /.container-fluid -->
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-sm-3 col-md-2 sidebar">
+          <ul class="nav nav-sidebar">
+            <li><a href="/monthlyprovider.html"><i class="fa fa-dashboard"></i>Cost Reports</a></li>
+            <li><a href="/capacity.html"><i class="fa fa-support"></i>Capacity Reports</a></li>
+            <li><a href="/budgets.html"><i class="fa fa-support"></i>Budget Administration</a></li>
+          </ul>
+        </div>
+{% block content %}{% endblock %}
+</div>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+  </body>
+</html>

@@ -1,0 +1,88 @@
+{% extends "layout_cap.html" %}
+{% block content %}
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+           <h4>Capacity Forecast</h4>
+           <div id="chartContainer">
+           </div>
+        </div>
+
+<script>
+var CHART = {
+    onReady: function() {
+        NAV.onReady();
+        CHART.estUrl="/data/capacity/estimates";
+        CHART.actUrl="/data/capacity/actuals";
+        CHART.svg = dimple.newSvg("#chartContainer",590,400);
+        CHART.promptValues();
+    },
+
+    promptValues: function() {
+        $('#capacity').trigger('click');
+        alert("Choose a Capacity Metric, then select Go");
+    },
+
+    drawGraphs: function (estdata) {
+        CHART.svg.selectAll("*").remove();
+        CHART.dubdata = estdata;
+        CHART.dchart = new dimple.chart(CHART.svg, CHART.dubdata);
+        CHART.dchart.setBounds(60, 50, 510, 350);
+        xAxis = CHART.dchart.addTimeAxis("x", "Period","%H:%M", "%H");
+        CHART.dchart.addMeasureAxis("y", "Value");
+        s1 = CHART.dchart.addSeries("Metric", dimple.plot.line);
+        s1.data = CHART.estdata;
+        CHART.mylegend = CHART.dchart.addLegend(60, 20, 510, 20, "right");
+        CHART.dchart.draw();
+    },
+
+    addActuals: function (actdata) {
+        CHART.actdata = actdata;
+        a1 = CHART.dchart.addSeries("Metric", dimple.plot.bar);
+        a1.data = CHART.actdata;
+        CHART.dchart.draw();
+    },
+
+    loadEstData: function (qstring){
+        querypath = CHART.estUrl;
+        if (qstring) {
+            querypath += qstring;
+        }
+        $.ajax({
+            url: querypath,
+            dataType: 'json',
+            cache: true,
+            timeout: 30000,
+            success: function(data) {
+                CHART.drawGraphs(data);
+            },
+            error: function(){
+                setTimeout(CHART.loadEstData, 5000);
+            }
+        });
+    },
+
+    loadActData: function (qstring){
+        querypath = CHART.actUrl;
+        if (qstring) {
+            querypath += qstring;
+        }
+        $.ajax({
+            url: querypath,
+            dataType: 'json',
+            cache: true,
+            timeout: 30000,
+            success: function(data) {
+                CHART.addActuals(data);
+            },
+            error: function(){
+                setTimeout(CHART.loadActData, 5000);
+            }
+        });
+    }
+
+};
+
+$( document ).ready ( CHART.onReady );
+</script>
+
+
+{% endblock %}

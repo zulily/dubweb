@@ -18,14 +18,13 @@ rackspace helper library
    See the License for the specific language governing permissions and
    limitations under the License.
 """
+from collections import defaultdict
+import requests
+import simplejson as json
+import pyfscache
 
 from app import app
 import app.utils as utils
-
-import requests
-import pyfscache
-from collections import defaultdict
-import simplejson as json
 
 #globals
 SETTINGS_FILE = "/var/dubweb/.raxcloud_settings"

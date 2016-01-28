@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+{% extends "layout_csv.html" %}
 {% block content %}
         <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
            <h4>Monthly Cost, by Team</h4>
@@ -100,6 +100,14 @@ var CHART = {
              }
          });
         return agg_budget;
+    },
+
+    loadCSV: function (qstring){
+        querypath = CHART.remoteUrl;
+        if (qstring) {
+            querypath += "?" + qstring;
+            window.location.replace(querypath);
+        }
     },
 
     loadChart: function (qstring){

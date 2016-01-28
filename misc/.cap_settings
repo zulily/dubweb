@@ -1,0 +1,10 @@
+{
+"cdb_db"    : "(capacity db name used for capacity tables)",
+"cdbhost"   : "(FQDN of capacity db host)",
+"cdbuser"   : "(username_ro)",
+"cdbpass"   : "(password)",
+"mdb_db"    : "(monitoring db name used for capacity actuals)",
+"mdbhost"   : "(FQDN of monitoring db host)",
+"mdbuser"   : "(username_ro)",
+"mdbpass"   : "(password)"
+}

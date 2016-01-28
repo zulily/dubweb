@@ -31,9 +31,10 @@ var NAV = {
     onReady: function() {
         $("#datetimestart").datepicker({ autoclose: true });
         $("#datetimeend").datepicker({  autoclose: true });
-        NAV.prvdata = {{ settings.prvarray|tojson|safe }};
-        NAV.teamdata = {{ settings.teamhash|tojson|safe }};
-        NAV.prjdata = {{ settings.prjdict|tojson|safe }};
+        NAV.prvdata = {{ asettings.prvarray|tojson|safe }};
+        NAV.teamdata = {{ asettings.teamhash|tojson|safe }};
+        NAV.prjdata = {{ asettings.prjdict|tojson|safe }};
+        NAV.cloneflag = {{ asettings.enable_cloning|tojson|safe }};
         NAV.init();
         $(".dropdown-menu li a").click( NAV.updateCb );
         $("button#submit").click( NAV.submitCb );
@@ -56,6 +57,9 @@ var NAV = {
                 $('#prjdropdown').append('<li><a role="menuitem" tabindex="-1" data-value="'+key+'" >'+NAV.prjdata[key][0]+' ('+key+')</a></li>');
             };
         }, NAV.prjdata);
+        if (NAV.cloneflag == 1) {
+            $('#clone').prop('checked',true);
+        };
     },
 
      updateCb: function() {
@@ -147,6 +151,13 @@ var NAV = {
               <ul class="dropdown-menu" role="menu" aria-labelledby="project" id="prjdropdown">
               </ul>
            </li>
+           <li>
+             <div class="checkbox">
+               <label class="navbar-link">
+                 <input type="checkbox" id="clone" disabled="disabled">Cloning Enabled
+               </label>
+             </div>
+          </li>
           </ul>
         </nav> <!-- /navbar -->
 </div><!-- /.container-fluid -->
@@ -154,7 +165,7 @@ var NAV = {
       <div class="row">
         <div class="col-sm-3 col-md-2 sidebar">
           <ul class="nav nav-sidebar">
-            <li><a href="/monthlyprovider.html"><i class="fa fa-dashboard"></i>Datacenter Charts</a></li>
+            <li><a href="/monthlyprovider.html"><i class="fa fa-dashboard"></i>Cost Charts</a></li>
             <li><a href="/budgets.html"><i class="fa fa-support"></i>Budget Administration</a></li>
             <li><a href="/providers.html"><i class="fa fa-support"></i>Provider Information</a></li>
             <li><a href="/teams.html"><i class="fa fa-support"></i>Team Administration</a></li>

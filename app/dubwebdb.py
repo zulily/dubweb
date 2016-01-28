@@ -20,15 +20,16 @@ dubweb helper library
 """
 
 import datetime as dt
-from dateutil.relativedelta import relativedelta
 from collections import defaultdict, OrderedDict
-import time
 import json
-import app.utils as utils
 import re
+import time
 import numpy as np
+from dateutil import parser
+from dateutil.relativedelta import relativedelta
 
 from app import app
+import app.utils as utils
 
 #globals
 SETTINGS_FILE = "/var/dubweb/.settings"
@@ -195,7 +196,7 @@ def get_projects(provider_id, team_id, project_id, dub_conn):
     return projectdict
 
 
-def get_budget_by_providers(ids, months, data_list, names, dub_conn):
+def get_budget_by_providers(ids, dub_conn):
     """
     Given optional filters for providers and team
     Return dubweb budget values by provider and month.
@@ -212,7 +213,62 @@ def get_budget_by_providers(ids, months, data_list, names, dub_conn):
         query_params.append(str(ids.prv))
     query += " GROUP BY prvid, month"
 
-    budget_list = utils.get_from_db(query, tuple(query_params), dub_conn)
+    return utils.get_from_db(query, tuple(query_params), dub_conn)
+
+
+def date_in_range(date_str, start_ts, end_ts):
+    """
+    Given a month and start & end timestamps,
+    Return True if month is between the timestamps.
+    """
+    curdate = parser.parse(date_str + "-01 00:00:00")
+    cur_ts = time.mktime(curdate.timetuple())
+    if start_ts <= cur_ts <= end_ts:
+        return True
+    else:
+        return False
+
+def get_budget_provider_dict(ids, start_ts, end_ts, dub_conn):
+    """
+    Given optional filters for providers and team
+    Return dubweb chart series by provider and month.
+    """
+    months = {}
+    data_points = defaultdict(dict)
+    providers = get_providers(ids.prv, dub_conn)
+    budget_list = get_budget_by_providers(ids, dub_conn)
+    for budget in budget_list:
+        if date_in_range(budget[0], start_ts, end_ts):
+            data_points[providers[budget[2]][0]][budget[0]] = int(budget[1])
+            months[budget[0]] = 1
+
+    return data_points, sorted(months.keys())
+
+
+def get_budget_team_dict(ids, start_ts, end_ts, dub_conn):
+    """
+    Given optional filters for providers and team
+    Return dubweb budget series by team and month.
+    """
+    months = {}
+    data_points = defaultdict(dict)
+    teams = get_teams(ids.team, dub_conn)
+    budget_list = get_budget_by_teams(ids, dub_conn)
+    for budget in budget_list:
+        if date_in_range(budget[0], start_ts, end_ts):
+            data_points[teams[budget[2]]][budget[0]] = int(budget[1])
+            months[budget[0]] = 1
+
+    return data_points, sorted(months.keys())
+
+
+def add_budget_series_providers(ids, months, data_list, names, dub_conn):
+    """
+    Given optional filters for providers and team
+    Return dubweb chart series by provider and month.
+    """
+
+    budget_list = get_budget_by_providers(ids, dub_conn)
     for budget in budget_list:
         if len(budget) > 0 and budget[1] is not None:
             if budget[0] not in months:
@@ -226,7 +282,7 @@ def get_budget_by_providers(ids, months, data_list, names, dub_conn):
     return data_list
 
 
-def get_budget_by_teams(ids, months, data_list, names, dub_conn):
+def get_budget_by_teams(ids, dub_conn):
     """
     Given optional filters for providers and team
     Return dubweb budget values by team and month.
@@ -243,7 +299,15 @@ def get_budget_by_teams(ids, months, data_list, names, dub_conn):
         query_params.append(str(ids.prv))
     query += " GROUP BY teamid, month"
 
-    budget_list = utils.get_from_db(query, tuple(query_params), dub_conn)
+    return utils.get_from_db(query, tuple(query_params), dub_conn)
+
+def add_budget_series_teams(ids, months, data_list, names, dub_conn):
+    """
+    Given optional filters for providers and team
+    Return dubweb budget chart series by team and month.
+    """
+
+    budget_list = get_budget_by_teams(ids, dub_conn)
     for budget in budget_list:
         if len(budget) > 0 and budget[1] is not None:
             if budget[0] not in months:
@@ -308,6 +372,7 @@ def get_provider_metric_buckets(provider_id, dub_conn):
                 break
 
     return metricbuckets
+
 
 def compute_month_stats(slice_len, stat_array):
     """
@@ -406,6 +471,168 @@ def estimate_monthly_metrics(my_time, d_metrics):
     return d_metrics
 
 
+def create_table(data_set, month_arr, table_str):
+    """ Given a data set, and a set of months,
+        Return a list of lists with each 'cell' of a csv table.
+    """
+    monthvals = {}
+    datarow = []
+    datalist = []
+
+    # Construct header row
+    datarow = [table_str]
+    datarow.extend(month_arr)
+    datarow.extend(["Subtotal"])
+    datalist.append(datarow)
+
+    # Parse into table, adding subtotals
+    for p_key in data_set.iterkeys():
+        datarow = [p_key]
+        data_sum = 0
+        for month in month_arr:
+            try:
+                value = int(data_set[p_key][month])
+            except KeyError:
+                value = 0
+            datarow.extend([value])
+            data_sum += value
+            try:
+                monthvals[month] += value
+            except KeyError:
+                monthvals[month] = value
+        datarow.extend([data_sum])
+        datalist.append(datarow)
+
+    # Add subtotals
+    datarow = ["Totals"]
+    total = 0
+    for month in month_arr:
+        try:
+            total += monthvals[month]
+            datarow.extend([monthvals[month]])
+        except KeyError:
+            datarow.extend([0])
+    datarow.extend([total])
+    datalist.append(datarow)
+    nullrow = [None]*len(datarow)
+    datalist.append(nullrow)
+
+    return datalist
+
+def get_data_budget_provider(mytime, ids):
+    """
+    Given a time, and optional filters for providers, team, project,
+    Return a csv containing provider budget and actuals by month.
+    """
+    months = {}
+    data_points = defaultdict(dict)
+    datalist = []
+    query_params = []
+
+    settings = utils.load_json_definition_file(SETTINGS_FILE)
+    success, dubconn = utils.open_monitoring_db(settings['dbhost'],
+                                                settings['dbuser'],
+                                                settings['dbpass'],
+                                                settings['db_db'])
+
+    if success:
+        mytime = get_date_filters(mytime)
+        # retrieve raw list of rows, one per actual/budget
+
+        query = """
+                   SELECT DATE_FORMAT(datetime,%s), prv.prvname,
+                   CAST(IFNULL(sum(cost),0) AS SIGNED INT) FROM metricdata 
+                   JOIN providers AS prv ON metricdata.prvid = prv.prvid
+                   WHERE datetime BETWEEN FROM_UNIXTIME(%s) AND
+                   FROM_UNIXTIME(%s) """
+        query_params.append(mytime.dformat)
+        query_params.append(mytime.start)
+        query_params.append(mytime.end)
+        if ids.team is not None:
+            query += " AND teamid = %s "
+            query_params.append(int(ids.team))
+        if ids.project is not None:
+            query += " AND prjid = %s "
+            query_params.append(int(ids.project))
+        if ids.prv is not None:
+            query += " AND metricdata.prvid = %s "
+            query_params.append(int(ids.prv))
+        query += " GROUP BY metricdata.prvid, DATE_FORMAT(datetime,%s)"
+        query_params.append(mytime.dformat)
+
+        dubmetrics = utils.get_from_db(query, query_params, dubconn)
+        for dubmetric in dubmetrics:
+            months[dubmetric[0]] = 1
+            data_points[dubmetric[1]][dubmetric[0]] = dubmetric[2]
+
+        budgets, bgt_months = get_budget_provider_dict(ids, int(mytime.start),
+                                                       int(mytime.end), dubconn)
+
+        datalist = create_table(data_points, bgt_months, table_str='Actuals:')
+        datalist += create_table(budgets, bgt_months, table_str='Budgets:')
+
+        dubconn.close()
+
+    return datalist
+
+
+def get_data_budget_team(mytime, ids):
+    """
+    Given a time, and optional filters for providers, team, project,
+    Return a csv containing team budget and actuals by month.
+    """
+    months = {}
+    data_points = defaultdict(dict)
+    datalist = []
+    query_params = []
+
+    settings = utils.load_json_definition_file(SETTINGS_FILE)
+    success, dubconn = utils.open_monitoring_db(settings['dbhost'],
+                                                settings['dbuser'],
+                                                settings['dbpass'],
+                                                settings['db_db'])
+
+    if success:
+        mytime = get_date_filters(mytime)
+        # retrieve raw list of rows, one per actual/budget
+
+        query = """
+                   SELECT DATE_FORMAT(datetime,%s), tm.teamname,
+                   CAST(IFNULL(sum(cost),0) AS SIGNED INT) FROM metricdata 
+                   JOIN teams AS tm ON metricdata.teamid = tm.teamid
+                   WHERE datetime BETWEEN FROM_UNIXTIME(%s) AND
+                   FROM_UNIXTIME(%s) """
+        query_params.append(mytime.dformat)
+        query_params.append(mytime.start)
+        query_params.append(mytime.end)
+        if ids.team is not None:
+            query += " AND metricdata.teamid = %s "
+            query_params.append(int(ids.team))
+        if ids.project is not None:
+            query += " AND metricdata.prjid = %s "
+            query_params.append(int(ids.project))
+        if ids.prv is not None:
+            query += " AND metricdata.prvid = %s "
+            query_params.append(int(ids.prv))
+        query += " GROUP BY metricdata.teamid, DATE_FORMAT(datetime,%s)"
+        query_params.append(mytime.dformat)
+
+        dubmetrics = utils.get_from_db(query, query_params, dubconn)
+        for dubmetric in dubmetrics:
+            months[dubmetric[0]] = 1
+            data_points[dubmetric[1]][dubmetric[0]] = dubmetric[2]
+
+
+        budgets, bgt_months = get_budget_team_dict(ids, int(mytime.start),
+                                                   int(mytime.end), dubconn)
+        datalist = create_table(data_points, bgt_months, table_str='Actuals:')
+        datalist += create_table(budgets, bgt_months, table_str='Budgets:')
+
+        dubconn.close()
+
+    return datalist
+
+
 def get_data_provider(mytime, ids, add_budget):
     """
     Given a time, and optional filters for providers, team, project,
@@ -459,8 +686,8 @@ def get_data_provider(mytime, ids, add_budget):
                 months[dubmetric[0]] = 1
 
         if add_budget:
-            datalist = get_budget_by_providers(ids, months, datalist,
-                                               providers, dubconn)
+            datalist = add_budget_series_providers(ids, months, datalist,
+                                                   providers, dubconn)
 
 
         dubconn.close()
@@ -519,8 +746,8 @@ def get_data_team(mytime, ids, add_budget):
                 months[dubmetric[0]] = 1
 
         if add_budget:
-            datalist = get_budget_by_teams(ids, months, datalist,
-                                           teams, dubconn)
+            datalist = add_budget_series_teams(ids, months, datalist,
+                                               teams, dubconn)
 
 
         dubconn.close()
@@ -696,8 +923,8 @@ def estimate_data_provider(mytime, ids, add_budget):
                 months[dubmetric[0]] = 1
 
         if add_budget:
-            datalist = get_budget_by_providers(ids, months, datalist,
-                                               providers, dubconn)
+            datalist = add_budget_series_providers(ids, months, datalist,
+                                                   providers, dubconn)
 
 
         dubconn.close()
@@ -758,9 +985,8 @@ def estimate_data_team(mytime, ids, add_budget):
                 months[dubmetric[0]] = 1
 
         if add_budget:
-            datalist = get_budget_by_teams(ids, months, datalist,
-                                           teams, dubconn)
-
+            datalist = add_budget_series_teams(ids, months, datalist,
+                                               teams, dubconn)
 
         dubconn.close()
     return json.dumps(datalist)

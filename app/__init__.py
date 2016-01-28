@@ -15,4 +15,6 @@ app.logger.addHandler(FH)
 from app import views
 from app import apis
 from app import adm_apis
-
+from app import adm_views
+from app import cap_apis
+from app import cap_views
