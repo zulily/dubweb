@@ -1,41 +1,43 @@
-1,10,GCE Network,com.google.cloud/services/compute-engine/Network,1,/ 1000000000,GB
-2,20,GCE VMs,com.google.cloud/services/compute-engine/Vmimage,1,/ 86400,VMs
-3,21,GCE VMs (Licensed),com.google.cloud/services/compute-engine/Licensed,1,/ 86400,VMs
-4,22,GCE VM Storage,com.google.cloud/services/compute-engine/Storage,1,/ 86400000000000,GB-days
-5,15,GCE VM Discount,com.google.cloud/services/compute-engine/.*SustainedUsageDiscount,1,/ 86400,VMs
-6,25,GC Support,com.google.cloud/services/support,1,* 1,USD
-7,30,GBQ Storage,com.google.cloud/services/big-query/Storage,1,/ 86400000000000,GB-days
-8,31,GBQ Analysis,com.google.cloud/services/big-query/Analysis,1,/ 1000000000,GB
-9,32,GBQ StrmInsrtBytes,com.google.cloud/services/big-query/StreamingInsertBytes,1,/ 1000000000,GB
-10,33,GBQ StrmInsrt Reqs,com.google.cloud/services/big-query/StreamingInsert,1,/ 1000,Reqs (K)
-11,35,GS Requests,com.google.cloud/services/cloud-storage/Class,1,/ 1000,Reqs (K)
-12,36,GS NearLine (NL),com.google.cloud/services/cloud-storage/StorageNearline,1,/ 86400000000000,GB-days
-13,37,GS NL Reads,com.google.cloud/services/cloud-storage/ReadSurchargeNearline,1,/ 1000000000,GB
-14,38,GS Storage,com.google.cloud/services/cloud-storage/Storage,1,/ 86400000000000,GB-days
-15,39,GS Bandwidth,com.google.cloud/services/cloud-storage/Bandwidth,1,/ 1000000000,GB
-16,45,GC SQL,com.google.cloud/services/cloud-sql,1,/ 86400,Days
-17,50,GAE FE,com.google.cloud/services/app-engine/FrontendInstances,1,/ 86400,Days
-18,51,GAE Datastore Storage,com.google.cloud/services/app-engine/DatastoreStorage,1,/ 86400000000000,GB-days
-19,52,GAE Datastore Reqs,com.google.cloud/services/app-engine/Datastore,1,/ 1000,Reqs (K)
-20,53,GAE Other,com.google.cloud/services/app-engine,1,/ 86400000000000,GB-days
-21,55,GBT Server Nodes,com.googleapis/services/bigtable/ServerNode,1,/ 86400,Days
-22,56,GBT Storage,com.googleapis/services/bigtable/StorageSsd,1,/ 86400000000000,GB-days
-23,60,GC PubSub Reqs,com.googleapis/services/pubsub/Message_operation,1,/ 1000,Reqs (K)
-24,70,GCE Other,com.google.cloud/services/compute-engine,1,/ 86400,Days
-25,90,GC Tax,Tax,1,* 1,
-26,100,GC Unknown,.,1,* 1,
-27,10,AWS EC2 Data Transfer,Amazon Elastic Compute Cloud:.*Bytes,2,,
-28,15,AWS EC2 VMs,Amazon Elastic Compute Cloud:.*BoxUsage,2,,
-29,17,AWS EC2 VMs (EBS Opt),Amazon Elastic Compute Cloud:EBSOptimized,2,,
-30,20,AWS EC2 EBS,Amazon Elastic Compute Cloud:.*EBS:VolumeUsage,2,,
-31,30,AWS S3 Storage,Amazon Simple Storage Service:.*TimedStorage-ByteHrs,2,,
-32,35,AWS S3 Other,Amazon Simple Storage Service:,2,,
-33,40,AWS Route 53,Amazon Route 53:,2,,
-34,50,AWS SQS,Amazon Simple Queue Service:,2,,
-35,55,AWS DynamoDB,Amazon DynamoDB:,2,,
-36,60,AWS SNS,Amazon Simple Notification Service:,2,,
-37,65,AWS KMS,AWS Key Management Service,2,,
-38,70,AWS SimpleDB,Amazon SimpleDB:,2,, 
-39,80,AWS EC2 Other,Amazon Elastic Compute Cloud:,2,,
-40,90,AWS Tax,Tax,2,* 1,
-41,100,AWS Unknown,.,2,* 1,
+ruleid,rank,groupname,textmatch,prvid,scalefactor,scaleunit
+1,10,"GCE Network",com.google.cloud/services/compute-engine/Network,1,"/ 1000000000","GB"
+5,15,"GCE VM Discount",com.google.cloud/services/compute-engine/.*SustainedUsageDiscount,1,"/ 86400","VMs"
+2,20,"GCE VMs",com.google.cloud/services/compute-engine/Vmimage,1,"/ 86400","VMs"
+3,21,"GCE VMs (Licensed)",com.google.cloud/services/compute-engine/Licensed,1,"/ 86400","VMs"
+4,22,"GCE VM Storage",com.google.cloud/services/compute-engine/Storage,1,"/ 86400000000000","GB-days"
+6,25,"GC Support",com.google.cloud/services/support,1,"* 1","USD"
+7,30,"GBQ Storage",com.google.cloud/services/big-query/Storage,1,"/ 86400000000000","GB-days"
+8,31,"GBQ Analysis",com.google.cloud/services/big-query/Analysis,1,"/ 1000000000","GB"
+9,32,"GBQ StrmInsrtBytes",com.google.cloud/services/big-query/StreamingInsertBytes,1,"/ 1000000000","GB"
+10,33,"GBQ StrmInsrt Reqs",com.google.cloud/services/big-query/StreamingInsert,1,"/ 1000","Reqs (K)"
+11,35,"GS Requests",com.google.cloud/services/cloud-storage/Class,1,"/ 1000","Reqs (K)"
+12,36,"GS NearLine (NL)",com.google.cloud/services/cloud-storage/StorageNearline,1,"/ 86400000000000","GB-days"
+13,37,"GS NL Reads",com.google.cloud/services/cloud-storage/ReadSurchargeNearline,1,"/ 1000000000","GB"
+14,38,"GS Storage",com.google.cloud/services/cloud-storage/Storage,1,"/ 86400000000000","GB-days"
+15,39,"GS Bandwidth",com.google.cloud/services/cloud-storage/Bandwidth,1,"/ 1000000000","GB"
+42,40,"GS cp Egress",com.google.cloud/services/cloud-storage/InterRegionEgress.*,1,"/ 1000000000",GB
+16,45,"GC SQL",com.google.cloud/services/cloud-sql,1,"/ 86400","Days"
+17,50,"GAE FE",com.google.cloud/services/app-engine/FrontendInstances,1,"/ 86400","Days"
+18,51,"GAE Datastore Storage",com.google.cloud/services/app-engine/DatastoreStorage,1,"/ 86400000000000","GB-days"
+19,52,"GAE Datastore Reqs",com.google.cloud/services/app-engine/Datastore,1,"/ 1000","Reqs (K)"
+20,53,"GAE Other",com.google.cloud/services/app-engine,1,"/ 86400000000000","GB-days"
+21,55,"GBT Server Nodes",com.googleapis/services/bigtable/ServerNode,1,"/ 86400","Days"
+22,56,"GBT Storage",com.googleapis/services/bigtable/StorageSsd,1,"/ 86400000000000","GB-days"
+23,60,"GC PubSub Reqs",com.googleapis/services/pubsub/Message_operation,1,"/ 1000","Reqs (K)"
+24,70,"GCE Other",com.google.cloud/services/compute-engine,1,"/ 86400","Days"
+25,90,"GC Tax",Tax,1,"* 1",""
+26,100,"GC Unknown",.,1,"* 1",""
+27,10,"AWS EC2 Data Transfer","Amazon Elastic Compute Cloud:.*Bytes",2,,""
+28,15,"AWS EC2 VMs","Amazon Elastic Compute Cloud:.*BoxUsage",2,,""
+29,17,"AWS EC2 VMs (EBS Opt)","Amazon Elastic Compute Cloud:EBSOptimized",2,,""
+30,20,"AWS EC2 EBS","Amazon Elastic Compute Cloud:.*EBS:VolumeUsage",2,,""
+31,30,"AWS S3 Storage","Amazon Simple Storage Service:.*TimedStorage-ByteHrs",2,,""
+32,35,"AWS S3 Other","Amazon Simple Storage Service:",2,,""
+33,40,"AWS Route 53","Amazon Route 53:",2,,""
+34,50,"AWS SQS","Amazon Simple Queue Service:",2,,""
+35,55,"AWS DynamoDB","Amazon DynamoDB:",2,,""
+36,60,"AWS SNS","Amazon Simple Notification Service:",2,,""
+37,65,"AWS KMS","AWS Key Management Service",2,,""
+38,70,"AWS SimpleDB","Amazon SimpleDB:",2,," "
+39,80,"AWS EC2 Other","Amazon Elastic Compute Cloud:",2,,""
+40,90,"AWS Tax",Tax,2,"* 1",""
+41,100,"AWS Unknown",.,2,"* 1",NULL
