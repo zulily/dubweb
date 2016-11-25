@@ -10,7 +10,7 @@ import json
 # Local imports
 from app import raxutils
 
-TEST_DC = 'iad'
+TEST_DC = 'replace_with_dc'
 TEST_PRJ = 'replace_with_cloud_project'
 TEST_VM = 'replace_with_valid_vm_ID_GUID'
 
@@ -33,7 +33,7 @@ class TestRAXUtils(unittest.TestCase):
                                     len(zm_nm[host]))
 
     def test_check_host_capacity(self):
-        """ Test the API checking for overloaded vm """
+        """ Test the API checking if vm is on overloaded host """
         # allow standard weighting, checking TEST_VM
         retval = raxutils.check_host_capacity(dc_id=TEST_DC, vmid=TEST_VM,
                                               max_weight=None)
@@ -43,6 +43,19 @@ class TestRAXUtils(unittest.TestCase):
         retval = raxutils.check_host_capacity(dc_id=TEST_DC, vmid=TEST_VM,
                                               max_weight=5)
         self.assertEqual(retval, "OVERLOADED")
+
+
+    def test_get_overloaded_hosts(self):
+        """ Test the API retrieving overloaded hosts we want to avoid """
+        # allow standard weighting, checking overload
+        avoid_hosts = raxutils.get_overloaded_hosts(dc_id=TEST_DC,
+                                                    max_weight=None)
+        self.assertGreater(len(avoid_hosts), 3)
+
+        # shouldn't be any hosts with more than 50 units of server load
+        avoid_hosts = raxutils.get_overloaded_hosts(dc_id=TEST_DC,
+                                                    max_weight=50)
+        self.assertEqual(avoid_hosts, '[]')
 
 
     def test_get_vm_hostmap(self):

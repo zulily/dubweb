@@ -10,56 +10,57 @@ import app.utils as utils
 @app.route('/index.html')
 @app.route('/monthlyprovider.html')
 def prov_monthly():
-    """  Monthly provider web page, which uses jquery to load
-         monthly provider API """
+    """  Monthly provider chart and csv """
     return render_template('monthlyprovider.html')
 
 @app.route('/dailyprovider.html')
 def prov_daily():
-    """  Daily provider web page, which uses jquery to load
-         daily provider API """
+    """  Daily provider chart """
     return render_template('dailyprovider.html')
 
 @app.route('/estimateprovider.html')
 def prov_est_monthly():
-    """  Monthly provider estimates, which uses jquery to load
-         estimate monthly provider API """
+    """  Monthly provider estimates chart and csv"""
     return render_template('estimateprovider.html')
+
+@app.route('/monthlybudget.html')
+def overunder_monthly():
+    """  Monthly team budget over/under csv and chart """
+    return render_template('monthlybudget.html')
+
+@app.route('/monthlydivision.html')
+def div_monthly():
+    """  Monthly division chart and csv """
+    return render_template('monthlydivision.html')
 
 @app.route('/monthlyteam.html')
 def team_monthly():
-    """  Monthly team web page, which uses jquery to load
-         monthly team API """
+    """  Monthly team chart and csv """
     return render_template('monthlyteam.html')
 
 @app.route('/dailyteam.html')
 def team_daily():
-    """  Daily team web page, which uses jquery to load
-         daily team API """
+    """  Daily team chart and csv """
     return render_template('dailyteam.html')
 
 @app.route('/estimateteam.html')
 def team_est_monthly():
-    """  Monthly team estimates, which uses jquery to load
-         estimate monthly team API """
+    """  Monthly team estimates chart and csv """
     return render_template('estimateteam.html')
 
 @app.route('/monthlyproject.html')
 def project_monthly():
-    """  Monthly project web page, which uses jquery to load
-         monthly project API """
+    """  Monthly project chart and csv """
     return render_template('monthlyproject.html')
 
 @app.route('/dailyproject.html')
 def project_daily():
-    """  Daily project web page, which uses jquery to load
-         daily project API """
+    """  Daily project chart """
     return render_template('dailyproject.html')
 
 @app.route('/dailyworkload.html')
 def workload_daily():
-    """  Daily workload web page, which uses jquery to load
-         daily workload API """
+    """  Daily workload showing google/AWS details per project """
     return render_template('dailyworkload.html')
 
 @app.context_processor
@@ -76,10 +77,13 @@ def load_dropdown_lists():
                                            dub_conn=db_conn)
         settings['providers'] = [item[0] for item in providers.values()]
         settings['prvarray'] = providers
-        teams = dubwebdb.get_teams(team_id=None, dub_conn=db_conn)
+        divisions = dubwebdb.get_divisions(div_ids=None, dub_conn=db_conn)
+        settings['divisions'] = [item for item in divisions.values()]
+        settings['divhash'] = divisions
+        teams = dubwebdb.get_teams(team_ids=None, dub_conn=db_conn)
         settings['teams'] = [item for item in teams.values()]
         settings['teamhash'] = teams
-        projects = dubwebdb.get_projects(provider_id=None, team_id=None,
+        projects = dubwebdb.get_projects(provider_id=None, team_ids=None,
                                          project_id=None, dub_conn=db_conn)
         settings['projects'] = [item[0] for item in projects.values()]
         settings['prjdict'] = projects

@@ -1,7 +1,7 @@
 {% extends "layout_admin.html" %}
 {% block content %}
 <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-  <h3>Team Administration</h3>
+  <h3>Division Administration</h3>
   <div id="jsGrid"></div>
     <script>
         $(function() {
@@ -18,7 +18,7 @@
                 loadData: function(filter) {
                     return $.ajax({
                         type: "GET",
-                        url: "/data/teams/list",
+                        url: "/data/divisions/list",
                         data: filter,
                         dataType: "json"
                     });
@@ -26,7 +26,7 @@
                 updateItem: function(item) {
                     return $.ajax({
                         type: "POST",
-                        url: "/data/teams/edit",
+                        url: "/data/divisions/edit",
                         data: item,
                         dataType: "json"
                     });
@@ -34,7 +34,7 @@
                 insertItem: function(item) {
                     return $.ajax({
                         type: "POST",
-                        url: "/data/teams/insert",
+                        url: "/data/divisions/insert",
                         data: item,
                         dataType: "json"
                     });
@@ -42,7 +42,7 @@
                 deleteItem: function(item) {
                     return $.ajax({
                         type: "DELETE",
-                        url: "/data/teams/delete",
+                        url: "/data/divisions/delete",
                         data: item,
                         dataType: "json"
                     });
@@ -54,7 +54,6 @@
                 { name: "ID", type: "number", width: 5, editing: false,
                   inserting: false},
                 { name: "Name", type: "text", width: 20 },
-                { name: "DivisionID", type: "number", width: 5},
                 { type: "control", width: 5 }
             ]
             });

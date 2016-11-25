@@ -51,14 +51,23 @@
  
  
             fields: [
+                { type: "control", width:10 },
                 { name: "ID", type: "number", width: 10, editing: false,
                   inserting: false},
                 { name: "Budget", type: "number", width: 10 },
                 { name: "Month", type: "text", width: 10 },
-                { name: "TeamID", type: "number", width: 10 },
-                { name: "ProviderID", type: "number", width: 10  },
+                { name: "TeamID", type: "number", width: 10, 
+                    itemTemplate: function(value) {
+                        return NAV.teamdata[value];
+                    }
+                },
+                { name: "ProviderID", type: "number", width: 10,
+                    itemTemplate: function(value) {
+                        return NAV.prvdata[value][0];
+                    }
+                },
                 { name: "Comment", type: "text", width: 50 },
-                { type: "control", width:10 }
+                { name: "Response", type: "text", width: 50 }
             ]
             });
         });

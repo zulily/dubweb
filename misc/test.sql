@@ -9,21 +9,21 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
 -- Schema mydb
 -- -----------------------------------------------------
 -- -----------------------------------------------------
--- Schema cub_zu
+-- Schema cub_test
 -- -----------------------------------------------------
 
 -- -----------------------------------------------------
--- Schema cub_zu
+-- Schema cub_test
 -- -----------------------------------------------------
-CREATE SCHEMA IF NOT EXISTS `cub_zu` DEFAULT CHARACTER SET utf8 ;
-USE `cub_zu` ;
+CREATE SCHEMA IF NOT EXISTS `cub_test` DEFAULT CHARACTER SET utf8 ;
+USE `cub_test` ;
 
 -- -----------------------------------------------------
--- Table `cub_zu`.`admins`
+-- Table `cub_test`.`admins`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `cub_zu`.`admins` ;
+DROP TABLE IF EXISTS `cub_test`.`admins` ;
 
-CREATE TABLE IF NOT EXISTS `cub_zu`.`admins` (
+CREATE TABLE IF NOT EXISTS `cub_test`.`admins` (
   `adminid` TINYINT(4) UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(64) NOT NULL,
   `pass` VARCHAR(64) NOT NULL,
@@ -35,11 +35,11 @@ DEFAULT CHARACTER SET = latin1;
 
 
 -- -----------------------------------------------------
--- Table `cub_zu`.`alertconst`
+-- Table `cub_test`.`alertconst`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `cub_zu`.`alertconst` ;
+DROP TABLE IF EXISTS `cub_test`.`alertconst` ;
 
-CREATE TABLE IF NOT EXISTS `cub_zu`.`alertconst` (
+CREATE TABLE IF NOT EXISTS `cub_test`.`alertconst` (
   `App_Limit` VARCHAR(255) NULL DEFAULT NULL,
   `Warning_Value` VARCHAR(255) NULL DEFAULT NULL,
   `Error_Value` VARCHAR(255) NULL DEFAULT NULL,
@@ -51,11 +51,11 @@ DEFAULT CHARACTER SET = latin1;
 
 
 -- -----------------------------------------------------
--- Table `cub_zu`.`providers`
+-- Table `cub_test`.`providers`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `cub_zu`.`providers` ;
+DROP TABLE IF EXISTS `cub_test`.`providers` ;
 
-CREATE TABLE IF NOT EXISTS `cub_zu`.`providers` (
+CREATE TABLE IF NOT EXISTS `cub_test`.`providers` (
   `prvid` TINYINT(4) UNSIGNED NOT NULL AUTO_INCREMENT,
   `prvname` VARCHAR(255) CHARACTER SET 'utf8' NOT NULL,
   `lastetl` DATETIME NULL DEFAULT NULL,
@@ -68,11 +68,11 @@ COLLATE = utf8_unicode_ci;
 
 
 -- -----------------------------------------------------
--- Table `cub_zu`.`divisions`
+-- Table `cub_test`.`divisions`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `cub_zu`.`divisions` ;
+DROP TABLE IF EXISTS `cub_test`.`divisions` ;
 
-CREATE TABLE IF NOT EXISTS `cub_zu`.`divisions` (
+CREATE TABLE IF NOT EXISTS `cub_test`.`divisions` (
   `divid` TINYINT(4) UNSIGNED NOT NULL AUTO_INCREMENT,
   `divname` VARCHAR(255) CHARACTER SET 'utf8' NOT NULL,
   PRIMARY KEY (`divid`),
@@ -83,11 +83,11 @@ COLLATE = utf8_unicode_ci;
 
 
 -- -----------------------------------------------------
--- Table `cub_zu`.`teams`
+-- Table `cub_test`.`teams`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `cub_zu`.`teams` ;
+DROP TABLE IF EXISTS `cub_test`.`teams` ;
 
-CREATE TABLE IF NOT EXISTS `cub_zu`.`teams` (
+CREATE TABLE IF NOT EXISTS `cub_test`.`teams` (
   `teamid` TINYINT(4) UNSIGNED NOT NULL AUTO_INCREMENT,
   `teamname` VARCHAR(255) CHARACTER SET 'utf8' NOT NULL,
   `divid` TINYINT(4) UNSIGNED NULL DEFAULT NULL,
@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS `cub_zu`.`teams` (
   INDEX `divid_idx` (`divid` ASC),
   CONSTRAINT `divid`
     FOREIGN KEY (`divid`)
-    REFERENCES `cub_zu`.`divisions` (`divid`)
+    REFERENCES `cub_test`.`divisions` (`divid`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
@@ -105,11 +105,11 @@ COLLATE = utf8_unicode_ci;
 
 
 -- -----------------------------------------------------
--- Table `cub_zu`.`budgetdata`
+-- Table `cub_test`.`budgetdata`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `cub_zu`.`budgetdata` ;
+DROP TABLE IF EXISTS `cub_test`.`budgetdata` ;
 
-CREATE TABLE IF NOT EXISTS `cub_zu`.`budgetdata` (
+CREATE TABLE IF NOT EXISTS `cub_test`.`budgetdata` (
   `budgetid` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
   `budget` INT(11) NOT NULL,
   `month` VARCHAR(8) NOT NULL,
@@ -124,12 +124,12 @@ CREATE TABLE IF NOT EXISTS `cub_zu`.`budgetdata` (
   UNIQUE KEY `month` (`month`, `prvid`, `teamid`),
   CONSTRAINT `budget_prvid`
     FOREIGN KEY (`prvid`)
-    REFERENCES `cub_zu`.`providers` (`prvid`)
+    REFERENCES `cub_test`.`providers` (`prvid`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `budget_teamid`
     FOREIGN KEY (`teamid`)
-    REFERENCES `cub_zu`.`teams` (`teamid`)
+    REFERENCES `cub_test`.`teams` (`teamid`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
@@ -137,11 +137,11 @@ DEFAULT CHARACTER SET = latin1;
 
 
 -- -----------------------------------------------------
--- Table `cub_zu`.`matchrules`
+-- Table `cub_test`.`matchrules`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `cub_zu`.`matchrules` ;
+DROP TABLE IF EXISTS `cub_test`.`matchrules` ;
 
-CREATE TABLE IF NOT EXISTS `cub_zu`.`matchrules` (
+CREATE TABLE IF NOT EXISTS `cub_test`.`matchrules` (
   `ruleid` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
   `rank` TINYINT(4) NOT NULL,
   `groupname` VARCHAR(45) CHARACTER SET 'utf8' NOT NULL,
@@ -154,7 +154,7 @@ CREATE TABLE IF NOT EXISTS `cub_zu`.`matchrules` (
   INDEX `prvid_idx` (`prvid` ASC),
   CONSTRAINT `matchrules_prvid`
     FOREIGN KEY (`prvid`)
-    REFERENCES `cub_zu`.`providers` (`prvid`)
+    REFERENCES `cub_test`.`providers` (`prvid`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
@@ -163,11 +163,11 @@ COLLATE = utf8_unicode_ci;
 
 
 -- -----------------------------------------------------
--- Table `cub_zu`.`metrictypes`
+-- Table `cub_test`.`metrictypes`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `cub_zu`.`metrictypes` ;
+DROP TABLE IF EXISTS `cub_test`.`metrictypes` ;
 
-CREATE TABLE IF NOT EXISTS `cub_zu`.`metrictypes` (
+CREATE TABLE IF NOT EXISTS `cub_test`.`metrictypes` (
   `metricid` SMALLINT(6) UNSIGNED NOT NULL AUTO_INCREMENT,
   `metricname` VARCHAR(255) NOT NULL,
   `unit` VARCHAR(48) NULL DEFAULT NULL,
@@ -177,7 +177,7 @@ CREATE TABLE IF NOT EXISTS `cub_zu`.`metrictypes` (
   INDEX `prvid_idx` (`prvid` ASC),
   CONSTRAINT `metrictypes_prvid`
     FOREIGN KEY (`prvid`)
-    REFERENCES `cub_zu`.`providers` (`prvid`)
+    REFERENCES `cub_test`.`providers` (`prvid`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
@@ -185,11 +185,11 @@ DEFAULT CHARACTER SET = latin1;
 
 
 -- -----------------------------------------------------
--- Table `cub_zu`.`projects`
+-- Table `cub_test`.`projects`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `cub_zu`.`projects` ;
+DROP TABLE IF EXISTS `cub_test`.`projects` ;
 
-CREATE TABLE IF NOT EXISTS `cub_zu`.`projects` (
+CREATE TABLE IF NOT EXISTS `cub_test`.`projects` (
   `prjid` SMALLINT(6) UNSIGNED NOT NULL AUTO_INCREMENT,
   `extname` VARCHAR(255) NULL DEFAULT NULL,
   `extid` VARCHAR(255) NULL DEFAULT NULL,
@@ -201,12 +201,12 @@ CREATE TABLE IF NOT EXISTS `cub_zu`.`projects` (
   INDEX `teamid_idx` (`teamid` ASC),
   CONSTRAINT `prj_prvid`
     FOREIGN KEY (`prvid`)
-    REFERENCES `cub_zu`.`providers` (`prvid`)
+    REFERENCES `cub_test`.`providers` (`prvid`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `prj_teamid`
     FOREIGN KEY (`teamid`)
-    REFERENCES `cub_zu`.`teams` (`teamid`)
+    REFERENCES `cub_test`.`teams` (`teamid`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
@@ -214,11 +214,11 @@ DEFAULT CHARACTER SET = latin1;
 
 
 -- -----------------------------------------------------
--- Table `cub_zu`.`metricdata`
+-- Table `cub_test`.`metricdata`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `cub_zu`.`metricdata` ;
+DROP TABLE IF EXISTS `cub_test`.`metricdata` ;
 
-CREATE TABLE IF NOT EXISTS `cub_zu`.`metricdata` (
+CREATE TABLE IF NOT EXISTS `cub_test`.`metricdata` (
   `id` INT(8) UNSIGNED NOT NULL AUTO_INCREMENT,
   `datetime` DATETIME NOT NULL,
   `metric` SMALLINT(6) UNSIGNED NOT NULL,
@@ -235,22 +235,22 @@ CREATE TABLE IF NOT EXISTS `cub_zu`.`metricdata` (
   INDEX `teamid_idx` (`teamid` ASC),
   CONSTRAINT `metricdata_metricid`
     FOREIGN KEY (`metric`)
-    REFERENCES `cub_zu`.`metrictypes` (`metricid`)
+    REFERENCES `cub_test`.`metrictypes` (`metricid`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `metricdata_prjid`
     FOREIGN KEY (`prjid`)
-    REFERENCES `cub_zu`.`projects` (`prjid`)
+    REFERENCES `cub_test`.`projects` (`prjid`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `metricdata_prvid`
     FOREIGN KEY (`prvid`)
-    REFERENCES `cub_zu`.`providers` (`prvid`)
+    REFERENCES `cub_test`.`providers` (`prvid`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `metricdata_teamid`
     FOREIGN KEY (`teamid`)
-    REFERENCES `cub_zu`.`teams` (`teamid`)
+    REFERENCES `cub_test`.`teams` (`teamid`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
@@ -258,11 +258,11 @@ DEFAULT CHARACTER SET = latin1;
 
 
 -- -----------------------------------------------------
--- Table `cub_zu`.`perfconst`
+-- Table `cub_test`.`perfconst`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `cub_zu`.`perfconst` ;
+DROP TABLE IF EXISTS `cub_test`.`perfconst` ;
 
-CREATE TABLE IF NOT EXISTS `cub_zu`.`perfconst` (
+CREATE TABLE IF NOT EXISTS `cub_test`.`perfconst` (
   `TimeOfDay` VARCHAR(255) CHARACTER SET 'utf8' NULL DEFAULT NULL,
   `web_http_ratio` VARCHAR(255) CHARACTER SET 'utf8' NULL DEFAULT NULL,
   `mapi_http_ratio` VARCHAR(255) CHARACTER SET 'utf8' NULL DEFAULT NULL,
@@ -286,4 +286,38 @@ COLLATE = utf8_unicode_ci;
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
+
+-- --------------------------------------------------
+-- Set up test teams, divisions, etc.
+-- --------------------------------------------------
+
+INSERT into cub_test.divisions (divname) VALUES ('Test-Tech');
+INSERT into cub_test.divisions (divname) VALUES ('Test-Mkt');
+INSERT into cub_test.teams (teamname, divid) VALUES ('Test-Team1', 1);
+INSERT into cub_test.teams (teamname, divid) VALUES ('Test-Team2', 1);
+INSERT into cub_test.teams (teamname, divid) VALUES ('Test-Team3', 2);
+INSERT into cub_test.providers (prvname, taxrate) VALUES ('Test-Provider', 0.0);
+INSERT into cub_test.providers (prvname, taxrate) VALUES ('Test-Provider-Mkt', 0.0);
+INSERT into cub_test.projects (extname, extid, prvid, teamid) 
+     VALUES ('Test-Project1', 'Testing123', 1, 1);
+INSERT into cub_test.projects (extname, extid, prvid, teamid) 
+     VALUES ('Test-Project2', 'Testing456', 1, 2);
+INSERT into cub_test.projects (extname, extid, prvid, teamid) 
+     VALUES ('Test-Mkt', 'Marketing', 2, 3);
+INSERT into cub_test.metrictypes (metricname, unit, prvid) 
+     VALUES ('mysql', 'day', 1);
+INSERT into cub_test.metrictypes (metricname, unit, prvid) 
+     VALUES ('sorcery', 'day', 2);
+INSERT into cub_test.metricdata (datetime, metric, data, prjid, cost, prvid,
+     teamid) VALUES ('2014-01-01 00:00:00', 1, 86400, 1, 20.00, 1, 1);
+INSERT into cub_test.metricdata (datetime, metric, data, prjid, cost, prvid,
+     teamid) VALUES ('2014-01-01 00:00:00', 1, 86400, 2, 40.00, 1, 2);
+INSERT into cub_test.metricdata (datetime, metric, data, prjid, cost, prvid,
+     teamid) VALUES ('2014-01-01 00:00:00', 2, 86400, 3, 80.00, 2, 3);
+INSERT into cub_test.budgetdata (budget, month, prvid, teamid)
+     VALUES (20, '2014-01', 1, 1);
+INSERT into cub_test.budgetdata (budget, month, prvid, teamid)
+     VALUES (50, '2014-01', 1, 2);
+INSERT into cub_test.budgetdata (budget, month, prvid, teamid)
+     VALUES (100, '2014-01', 2, 3);
 

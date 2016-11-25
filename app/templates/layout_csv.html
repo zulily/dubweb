@@ -14,14 +14,16 @@ layout.html - the layout template used by most pages
     <link rel="stylesheet" media="all" type="text/css" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" />
     <link rel="stylesheet" media="all" type="text/css" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css" />
     <link rel="stylesheet" media="all" type="text/css" href="http://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.0/css/bootstrap-datepicker.standalone.css" />
-    <link rel="stylesheet" media="all" type="text/css" href="static/css/zulily_dash.css" />
+    <link rel="stylesheet" media="all" type="text/css" href="static/css/dub_dash.css" />
+    <link rel="stylesheet" media="all" type="text/css" href="static/css/bootstrap-multiselect.css" />
 
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script type="text/javascript" src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.0/js/bootstrap-datepicker.min.js"></script>
+    <script type="text/javascript" src="static/js/bootstrap-multiselect.js"></script>
 
     <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
-    <script type="text/javascript" src="http://dimplejs.org/dist/dimple.v2.1.2.min.js"></script>
+    <script type="text/javascript" src="http://dimplejs.org/dist/dimple.v2.2.0.min.js"></script>
 
 
  <script>
@@ -34,25 +36,34 @@ var NAV = {
         NAV.teamdata = {{ settings.teamhash|tojson|safe }};
         NAV.prjdata = {{ settings.prjdict|tojson|safe }};
         NAV.init();
-        $(".dropdown-menu li a").click( NAV.updateCb );
-        $("button#submit").click( NAV.submitCb );
-        $("#cb").click ( NAV.clearDateCb );
+        $('.dropdown-menu li a').click( NAV.updateCb );
+        $('button#submit').click( NAV.submitCb );
+        $('#cb').click ( NAV.clearDateCb );
+        $('#provider').multiselect({
+            nonSelectedText: 'All Providers'
+        });
+        $('#team').multiselect({
+            nonSelectedText: 'All Teams'
+        });
+        $('#project').multiselect({
+            nonSelectedText: 'All Projects'
+        });
     },
      
     init: function() {
         Object.keys(NAV.prvdata).forEach(function(key,index) {
              if (NAV.prvdata[key]) {
-                $('#prvdropdown').append('<li><a role="menuitem" tabindex="-1" data-value="'+key+'" >'+NAV.prvdata[key][0]+'</a></li>');
+                $('#provider').append('<option value="'+key+'" >'+NAV.prvdata[key][0]+'</option>');
             };
         }, NAV.prvdata);
         Object.keys(NAV.teamdata).forEach(function(key,index) {
             if (NAV.teamdata[key]) {
-                $('#teamdropdown').append('<li><a role="menuitem" tabindex="-1" data-value="'+key+'" >'+NAV.teamdata[key]+'</a></li>');
+                $('#team').append('<option value="'+key+'" >'+NAV.teamdata[key]+'</option>');
             };
         }, NAV.teamdata);
         Object.keys(NAV.prjdata).forEach(function(key,index) {
             if (NAV.prjdata[key]) {
-                $('#prjdropdown').append('<li><a role="menuitem" tabindex="-1" data-value="'+key+'" >'+NAV.prjdata[key][0]+'</a></li>');
+                $('#project').append('<option value="'+key+'" >'+NAV.prjdata[key][0]+'</option>');
             };
         }, NAV.prjdata);
     },
@@ -140,22 +151,13 @@ var NAV = {
             <li class="navbar-brand">Filter:</li>
 
             <li class="dropdown">
-            <a href="#" id="provider" role="button" class="dropdown-toggle" data-toggle="dropdown">All Providers <span class="caret"></span></a>
-              <ul class="dropdown-menu" role="menu" aria-labelledby="provider" id="prvdropdown">
-                <li><a role="menuitem" tabindex="-1" data-value="">All Providers</a></li>
-              </ul>
+             <select id="provider" size="2" ></select>
            </li>
            <li class="dropdown">
-            <a href="#" id="team" role="button" class="dropdown-toggle" data-toggle="dropdown">All Teams <span class="caret"></span></a>
-              <ul class="dropdown-menu" role="menu" aria-labelledby="team" id="teamdropdown">
-                <li><a role="menuitem" tabindex="-1" data-value="">All Teams</a></li>
-              </ul>
+             <select id="team" multiple="multiple"></select>
            </li>
            <li class="dropdown">
-            <a href="#" id="project" role="button" class="dropdown-toggle" data-toggle="dropdown">All Projects <span class="caret"></span></a>
-              <ul class="dropdown-menu" role="menu" aria-labelledby="project" id="prjdropdown">
-                <li><a role="menuitem" tabindex="-1" data-value="">All Projects</a></li>
-              </ul>
+             <select id="project" size="2" ></select>
            </li>
             <li class="dropdown" id="dropdownli">
             <a href="#" id="mydate"  role="button" class="dropdown-toggle" data-toggle="dropdown">Date Range <span class="caret" id="nb"></span></a>
@@ -182,8 +184,10 @@ var NAV = {
       <div class="row">
         <div class="col-sm-3 col-md-2 sidebar">
           <ul class="nav nav-sidebar">
+            <li><a href="/monthlybudget.html"><i class="fa fa-support"></i>Monthly Budget Over/Under </a></li>
             <li><a href="/monthlyprovider.html"><i class="fa fa-support"></i>Monthly Provider </a></li>
             <li><a href="/dailyprovider.html"><i class="fa fa-support"></i> Daily Provider </a></li>
+            <li><a href="/monthlydivision.html"><i class="fa fa-support"></i>Monthly Division </a></li>
             <li><a href="/monthlyteam.html"><i class="fa fa-support"></i>Monthly Team </a></li>
             <li><a href="/dailyteam.html"><i class="fa fa-support"></i> Daily Team </a></li>
             <li><a href="/monthlyproject.html"><i class="fa fa-support"></i>Monthly Project </a></li>

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 {#
-layout_cap.html - the layout template used by capacity pages
+layout_capest.html - the layout template used by capacity forecast pages
 #}
 
 <html lang="en">
@@ -14,25 +14,25 @@ layout_cap.html - the layout template used by capacity pages
     <link rel="stylesheet" media="all" type="text/css" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" />
     <link rel="stylesheet" media="all" type="text/css" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css" />
     <link rel="stylesheet" media="all" type="text/css" href="http://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.0/css/bootstrap-datepicker.standalone.css" />
-    <link rel="stylesheet" media="all" type="text/css" href="static/css/zulily_dash.css" />
+    <link rel="stylesheet" media="all" type="text/css" href="static/css/dub_dash.css" />
 
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script type="text/javascript" src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.0/js/bootstrap-datepicker.min.js"></script>
 
     <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
-    <script type="text/javascript" src="http://dimplejs.org/dist/dimple.v2.1.2.min.js"></script>
+    <script type="text/javascript" src="http://dimplejs.org/dist/dimple.v2.2.0.min.js"></script>
 
 
  <script>
 
 var NAV = {
     onReady: function() {
+        $("#datetimeest").datepicker('setDate', new Date());
         NAV.capdata = {{ csettings.caparray|tojson|safe }};
         NAV.init();
         $(".dropdown-menu li a").click( NAV.updateCb );
         $("button#submit").click( NAV.submitCb );
-        $("#cb").click ( NAV.clearDateCb );
     },
      
     init: function() {
@@ -50,10 +50,16 @@ var NAV = {
 
      submitCb: function(){
         var capacity_ids = $("#capacity").val();
+        var time_est = $("#datetimeest").val();
         var qstring = "";
 
         if (capacity_ids) {
           qstring += "?ids="+capacity_ids;
+        }
+
+       if (time_est != "") {
+            var est_time = Date.parse(time_est)/1000;
+            qstring += "&opt_date="+est_time;
         }
         CHART.loadEstData(qstring);
         CHART.loadActData(qstring);
@@ -104,7 +110,13 @@ var NAV = {
               <ul class="dropdown-menu" role="menu" aria-labelledby="capacity" id="capdropdown">
               </ul>
            </li>
-            <button type="submit" class="btn btn-default" id="submit">Go</button>
+           <li class="navbar-brand">
+              <i class="glyphicon glyphicon-calendar" id="cb"></i>
+           </li>
+           <li class="navbar-brand">
+              <input class="form-control" type="text" id="datetimeest"/>
+           </li>
+           <button type="submit" class="btn btn-default" id="submit">Go</button>
           </ul>
         </nav> <!-- /navbar -->
 </div><!-- /.container-fluid -->

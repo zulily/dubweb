@@ -19,7 +19,7 @@ cap helper library
    limitations under the License.
 """
 
-import datetime
+from datetime import datetime
 import json
 from collections import OrderedDict
 from dateutil import parser
@@ -39,7 +39,7 @@ def get_cap_ids(cap_ids, cap_conn):
 
     capdict = {}
     query = """
-            SELECT typeid, typename, metricid, lastetl FROM capacity_types 
+            SELECT typeid, typename, metricid, driverid, lastetl FROM capacity_types 
             """
     cursor = cap_conn.cursor()
     try:
@@ -47,7 +47,7 @@ def get_cap_ids(cap_ids, cap_conn):
         rows = cursor.fetchall()
         for row in rows:
             if cap_ids is None or str(row[0]) in cap_ids:
-                capdict[str(row[0])] = [row[0], row[1], row[2], row[3]]
+                capdict[str(row[0])] = [row[0], row[1], row[2], row[3], row[4]]
     except Exception, err:
         app.logger.error("mysql exception: %s", err.message)
         app.logger.error("from query: %s", query)
@@ -55,26 +55,6 @@ def get_cap_ids(cap_ids, cap_conn):
         cursor.close()
 
     return capdict
-
-
-def get_capacity_limits(ids, cap_conn):
-    """
-    TODO:
-    Given a set of capacity metric ids,
-    Return cap limit values.
-    """
-
-    query_params = []
-    data_list = []
-    query = "SELECT id, CAST(IFNULL(limit),0) AS SIGNED INT)"
-    query += " FROM capacity_limits WHERE id = %s"
-
-    limit_list = utils.get_from_db(query, tuple(query_params), cap_conn)
-    for limit in limit_list:
-        data_point = {}
-        data_list.append(data_point)
-
-    return data_list
 
 
 def get_capacity_daily(ids, add_limits):
@@ -110,8 +90,7 @@ def get_capacity_daily(ids, add_limits):
                 datalist.append(data_point)
 
         if add_limits:
-            datalist = get_capacity_limits(ids, capconn)
-
+            app.logger.error("Error: Capacity Limits Not Implemented")
         capconn.close()
     return json.dumps(datalist)
 
@@ -149,7 +128,7 @@ def get_cap_model_metrics(my_id, conn):
     return metrics
 
 
-def get_capacity_model(ids):
+def get_capacity_model(ids, opt_date):
     """
     Given a list of capacity metric ids,
     Return capacity model and coefficient for the given metric.
@@ -169,6 +148,8 @@ def get_capacity_model(ids):
             capmodels[capkey]['coef'] = get_cap_coefs(capkey, capconn)
             capmodels[capkey]['model'] = get_cap_model_metrics(capkey,
                                                                capconn)
+            capmodels[capkey]['driver'] = get_driver_metric(cap_ids[capkey][3],
+                                                            opt_date)
 
         capconn.close()
     return json.dumps(capmodels)
@@ -185,15 +166,22 @@ def get_driver_metric(source_metric, my_date):
 
     if msuccess:
         cursor = monconn.cursor()
+        if my_date is None:
+            now = datetime.now()
+        else:
+            now = datetime.fromtimestamp(float(my_date))
+        my_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
 
         query = """
                 SELECT CAST(max(pd.data) AS SIGNED) AS metric_total
                 FROM perfdata pd
-                JOIN perftypes pt ON pt.metricid = pd.metric
-                WHERE pt.metricname = %s
-               """
+                WHERE pd.metric = %s AND
+                datetime BETWEEN %s AND
+                DATE_ADD(%s, INTERVAL '23:59:59' HOUR_SECOND)
+                ORDER by datetime ASC
+                """
         try:
-            cursor.execute(query, (source_metric[0], my_date))
+            cursor.execute(query, (source_metric, my_date, my_date))
             drivermetric = cursor.fetchall()
 
         except Exception, err:
@@ -227,9 +215,9 @@ def get_monitor_daily(ids, opt_date):
 
     if csuccess and msuccess:
         if opt_date is None:
-            now = datetime.datetime.now()
+            now = datetime.now()
         else:
-            now = parser.parse(opt_date)
+            now = datetime.fromtimestamp(float(opt_date))
         opt_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
         cap_ids = get_cap_ids(ids, capconn)
         for capkey in cap_ids.iterkeys():

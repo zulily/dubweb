@@ -87,9 +87,9 @@ class DUBLoad(object):
                    result_array[5] == '0':
                     continue
                 if result_array[1] not in self._projects:
-                    # add a new team (can delete later if necessary)
+                    # add a new team/divid (can delete later if necessary)
                     # add the new project under the new team
-                    self._teams = self._add_team('unk')
+                    self._teams = self._add_team('unk', 1)
                     last_team_id = sorted(self._teams.keys())[-1]
                     self._projects = self._add_project('unk',
                                                        result_array[1],
@@ -238,14 +238,14 @@ class DUBLoad(object):
         cursor.close()
         return metrictypes
 
-    def _add_team(self, teamname):
+    def _add_team(self, teamname, div_id):
         """
         Add team to  MySQL cub DB
         """
         cursor = self._conn.cursor()
-        query = "INSERT INTO teams (teamname) VALUES (%s)"
+        query = "INSERT INTO teams (teamname, divid) VALUES (%s, %s)"
         try:
-            cursor.execute(query, (teamname))
+            cursor.execute(query, (teamname, div_id))
         except MySQLdb.Error, err:
             print "Error %d: %s" % (err.args[0], err.args[1])
             sys.exit(1)

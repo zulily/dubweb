@@ -29,7 +29,7 @@ class AdmIDs(object):
     """
     admindb ids helper class
     """
-    def __init__(self, prv_id, team_id, project_id, budget_id):
+    def __init__(self, prv_id, team_id, project_id, budget_id, div_id):
         """
         Initial ids for chart
         """
@@ -37,8 +37,9 @@ class AdmIDs(object):
         self.team = team_id
         self.project = project_id
         self.budget = budget_id
+        self.div = div_id
 
-def format_budget(bgt_id, bgt, month, comment, team_id, prv_id):
+def format_budget(bgt_id, bgt, month, comment, team_id, prv_id, response):
     """
     Helper for budget row formatting
     """
@@ -49,6 +50,7 @@ def format_budget(bgt_id, bgt, month, comment, team_id, prv_id):
     data_point["Comment"] = comment
     data_point["TeamID"] = team_id
     data_point["ProviderID"] = prv_id
+    data_point["Response"] = response
     return data_point
 
 def format_provider(prv_id, name, lastetl, taxrate):
@@ -62,12 +64,22 @@ def format_provider(prv_id, name, lastetl, taxrate):
     data_point["TaxRate"] = taxrate
     return data_point
 
-def format_team(team_id, name):
+def format_team(team_id, name, div_id):
     """
     Helper for team row formatting
     """
     data_point = {}
     data_point["ID"] = team_id
+    data_point["Name"] = name
+    data_point["DivisionID"] = div_id
+    return data_point
+
+def format_division(div_id, name):
+    """
+    Helper for division row formatting
+    """
+    data_point = {}
+    data_point["ID"] = div_id
     data_point["Name"] = name
     return data_point
 
@@ -101,7 +113,7 @@ def get_budget_items(ids, m_filter, bgt_filter):
         params = []
         query = """
                     SELECT distinct budgetid, budget, month,
-                    IFNULL(comment,""), teamid, prvid
+                    IFNULL(comment,""), teamid, prvid, response
                     FROM budgetdata WHERE 1 """
         if ids.team is not None:
             query += " AND teamid = %s "
@@ -130,14 +142,15 @@ def get_budget_items(ids, m_filter, bgt_filter):
                                            month=dubmetric[2],
                                            comment=dubmetric[3],
                                            team_id=dubmetric[4],
-                                           prv_id=dubmetric[5])
+                                           prv_id=dubmetric[5],
+                                           response=dubmetric[6])
                 datalist.append(budget_row)
 
 
         dubconn.close()
     return datalist
 
-def edit_budget_item(ids, my_month, my_budget, my_comment):
+def edit_budget_item(ids, my_month, my_budget, my_comment, my_response):
     """
     Given budget id, and modified: providers, team, project,
     budget, or month
@@ -155,18 +168,20 @@ def edit_budget_item(ids, my_month, my_budget, my_comment):
                                month=my_month,
                                comment=my_comment,
                                team_id=int(ids.team),
-                               prv_id=int(ids.prv))
+                               prv_id=int(ids.prv),
+                               response=my_response)
 
         query = """
                     UPDATE budgetdata
-                    SET budget=%s, month=%s, teamid=%s, prvid=%s, comment=%s
-                    WHERE budgetid=%s
+                    SET budget=%s, month=%s, teamid=%s, prvid=%s, comment=%s,
+                    response=%s WHERE budgetid=%s
                 """
         cursor = dubconn.cursor()
         try:
             cursor.execute(query, (budget['Budget'], budget['Month'],
                                    budget['TeamID'], budget['ProviderID'],
-                                   budget['Comment'], budget['ID']))
+                                   budget['Comment'], budget['Response'],
+                                   budget['ID']))
         except Exception, err:
             app.logger.error("mysql exception: [%d]:  %s", err.args[0],
                              err.args[1])
@@ -177,9 +192,9 @@ def edit_budget_item(ids, my_month, my_budget, my_comment):
         dubconn.close()
     return budget
 
-def insert_budget_item(ids, my_month, my_budget, my_comment):
+def insert_budget_item(ids, my_month, my_budget, my_comment, my_response):
     """
-    Given providers, team, project, budget, and month
+    Given providers, team, project, budget, month, and comments,
     Return inserted budget entry.
     """
     settings = utils.load_json_definition_file(SETTINGS_FILE)
@@ -194,18 +209,19 @@ def insert_budget_item(ids, my_month, my_budget, my_comment):
                                month=my_month,
                                comment=my_comment,
                                team_id=int(ids.team),
-                               prv_id=int(ids.prv))
+                               prv_id=int(ids.prv),
+                               response=my_response)
 
         query = """
                     INSERT INTO budgetdata
-                    (budget, month, teamid, prvid, comment)
-                    VALUES (%s, %s, %s, %s, %s)
+                    (budget, month, teamid, prvid, comment, response)
+                    VALUES (%s, %s, %s, %s, %s, %s)
                 """
         cursor = dubconn.cursor()
         try:
             cursor.execute(query, (budget['Budget'], budget['Month'],
                                    budget['TeamID'], budget['ProviderID'],
-                                   budget['Comment']))
+                                   budget['Comment'], budget['Response']))
         except Exception, err:
             app.logger.error("mysql exception: [%d]:  %s", err.args[0],
                              err.args[1])
@@ -231,8 +247,8 @@ def clone_budget_month(ids, src_month, dst_month):
         my_comment = "Cloned from " + src_month
         query = """
                     INSERT IGNORE INTO budgetdata
-                    (budget, month, teamid, prvid, comment)
-                    VALUES (%s, %s, %s, %s, %s)
+                    (budget, month, teamid, prvid, comment, response)
+                    VALUES (%s, %s, %s, %s, %s, %s)
                 """
         cursor = dubconn.cursor()
         src_budgets = get_budget_items(ids, m_filter=src_month,
@@ -243,12 +259,13 @@ def clone_budget_month(ids, src_month, dst_month):
                                    month=dst_month,
                                    comment=my_comment,
                                    team_id=int(bdgt['TeamID']),
-                                   prv_id=int(bdgt['ProviderID']))
+                                   prv_id=int(bdgt['ProviderID']),
+                                   response=None)
 
             try:
                 cursor.execute(query, (budget['Budget'], budget['Month'],
                                        budget['TeamID'], budget['ProviderID'],
-                                       budget['Comment']))
+                                       budget['Comment'], budget['Response']))
             except Exception, err:
                 app.logger.error("mysql exception: [%d]:  %s", err.args[0],
                                  err.args[1])
@@ -345,11 +362,14 @@ def get_team_items(ids, name_filter):
     if success:
         params = []
         query = """
-                    SELECT distinct teamid, teamname
+                    SELECT distinct teamid, teamname, divid
                     FROM teams WHERE 1 """
         if ids.team is not None:
             query += " AND teamid = %s "
             params.append(str(ids.team))
+        if ids.div is not None:
+            query += " AND divid = %s "
+            params.append(str(ids.div))
         if name_filter is not None:
             query += " AND teamname LIKE %s "
             params.append(name_filter + "%")
@@ -361,7 +381,8 @@ def get_team_items(ids, name_filter):
         for dubmetric in dubmetrics:
             if len(dubmetric) > 0 and dubmetric[1] is not None:
                 team_row = format_team(team_id=dubmetric[0],
-                                       name=dubmetric[1])
+                                       name=dubmetric[1],
+                                       div_id=dubmetric[2])
                 datalist.append(team_row)
 
 
@@ -370,7 +391,7 @@ def get_team_items(ids, name_filter):
 
 def edit_team_item(ids, my_teamname):
     """
-    Given team id, and modified teamname
+    Given team id, modified teamname, and division id
     Return modified team entry.
     """
     settings = utils.load_json_definition_file(SETTINGS_FILE)
@@ -380,15 +401,17 @@ def edit_team_item(ids, my_teamname):
                                                 settings['db_db'])
 
     if success:
-        team = format_team(team_id=int(ids.team), name=my_teamname)
+        team = format_team(team_id=int(ids.team), name=my_teamname,
+                           div_id=int(ids.div))
 
         query = """
                     UPDATE teams
-                    SET teamname=%s WHERE teamid=%s
+                    SET teamname=%s, divid=%s WHERE teamid=%s
                 """
         cursor = dubconn.cursor()
         try:
-            cursor.execute(query, (team['Name'], team['ID']))
+            cursor.execute(query, (team['Name'], team['ID'],
+                                   team['DivisionID']))
         except Exception, err:
             app.logger.error("mysql exception: [%d]:  %s", err.args[0],
                              err.args[1])
@@ -401,7 +424,7 @@ def edit_team_item(ids, my_teamname):
 
 def insert_team_item(ids, my_teamname):
     """
-    Given providers, team, project, team, and month
+    Given team, name and division id
     Return inserted team entry.
     """
     settings = utils.load_json_definition_file(SETTINGS_FILE)
@@ -413,12 +436,12 @@ def insert_team_item(ids, my_teamname):
     if success:
         query = """
                     INSERT INTO teams
-                    (teamname)
-                    VALUES (%s)
+                    (teamname, divid)
+                    VALUES (%s, %s)
                 """
         cursor = dubconn.cursor()
         try:
-            cursor.execute(query, (my_teamname,))
+            cursor.execute(query, (my_teamname, ids.div))
         except Exception, err:
             app.logger.error("mysql exception: [%d]:  %s", err.args[0],
                              err.args[1])
@@ -441,8 +464,8 @@ def delete_team_item(ids, my_teamname):
                                                 settings['db_db'])
 
     if success:
-        team = format_team(team_id=int(ids.team),
-                           name=my_teamname)
+        team = format_team(team_id=int(ids.team), name=my_teamname,
+                           div_id=int(ids.div))
 
         query = """
                     DELETE FROM teams
@@ -461,6 +484,137 @@ def delete_team_item(ids, my_teamname):
         cursor.close()
         dubconn.close()
     return team
+
+def get_division_items(ids, name_filter):
+    """
+    Given optional filters for division id and name
+    Return list of division entries.
+    """
+    datalist = []
+
+    settings = utils.load_json_definition_file(SETTINGS_FILE)
+    success, dubconn = utils.open_monitoring_db(settings['dbhost'],
+                                                settings['dbuser'],
+                                                settings['dbpass'],
+                                                settings['db_db'])
+
+    if success:
+        params = []
+        query = """
+                    SELECT distinct divid, divname
+                    FROM divisions WHERE 1 """
+        if ids.div is not None:
+            query += " AND divid = %s "
+            params.append(str(ids.div))
+        if name_filter is not None:
+            query += " AND divname LIKE %s "
+            params.append(name_filter + "%")
+
+        app.logger.debug("get division query: %s", query)
+
+        dubmetrics = utils.get_from_db(query, tuple(params), dubconn)
+
+        for dubmetric in dubmetrics:
+            if len(dubmetric) > 0 and dubmetric[1] is not None:
+                division_row = format_division(div_id=dubmetric[0],
+                                               name=dubmetric[1])
+                datalist.append(division_row)
+
+        dubconn.close()
+    return datalist
+
+def edit_division_item(ids, my_divname):
+    """
+    Given division id and modified divisionname,
+    Return modified division entry.
+    """
+    settings = utils.load_json_definition_file(SETTINGS_FILE)
+    success, dubconn = utils.open_monitoring_db(settings['dbhost'],
+                                                settings['dbuser'],
+                                                settings['dbpass'],
+                                                settings['db_db'])
+
+    if success:
+        division = format_division(div_id=int(ids.div), name=my_divname)
+
+        query = """
+                    UPDATE divisions
+                    SET divname=%s WHERE divid=%s
+                """
+        cursor = dubconn.cursor()
+        try:
+            cursor.execute(query, (division['Name'], division['ID']))
+        except Exception, err:
+            app.logger.error("mysql exception: [%d]:  %s", err.args[0],
+                             err.args[1])
+            app.logger.error("generated by: %s", query)
+            success = 0
+        dubconn.commit()
+        cursor.close()
+        dubconn.close()
+    return division
+
+def insert_division_item(ids, my_divname):
+    """
+    Given division name,
+    Return inserted division entry.
+    """
+    settings = utils.load_json_definition_file(SETTINGS_FILE)
+    success, dubconn = utils.open_monitoring_db(settings['dbhost'],
+                                                settings['dbuser'],
+                                                settings['dbpass'],
+                                                settings['db_db'])
+
+    if success:
+        query = """
+                    INSERT INTO divisions
+                    (divname)
+                    VALUES (%s)
+                """
+        cursor = dubconn.cursor()
+        try:
+            cursor.execute(query, (my_divname,))
+        except Exception, err:
+            app.logger.error("mysql exception: [%d]:  %s", err.args[0],
+                             err.args[1])
+            app.logger.error("generated by: %s", query)
+            success = 0
+        dubconn.commit()
+        cursor.close()
+        dubconn.close()
+    return get_division_items(ids, my_divname)[0]
+
+def delete_division_item(ids, my_divname):
+    """
+    Given division id, delete from db
+    Return deleted division entry.
+    """
+    settings = utils.load_json_definition_file(SETTINGS_FILE)
+    success, dubconn = utils.open_monitoring_db(settings['dbhost'],
+                                                settings['dbuser'],
+                                                settings['dbpass'],
+                                                settings['db_db'])
+
+    if success:
+        division = format_division(div_id=int(ids.div), name=my_divname)
+
+        query = """
+                    DELETE FROM divisions
+                    WHERE divid=%s
+                """
+        app.logger.debug("Got a delete query of: %s ", query)
+        cursor = dubconn.cursor()
+        try:
+            cursor.execute(query, (division['ID'],))
+        except Exception, err:
+            app.logger.error("mysql exception: [%d]:  %s", err.args[0],
+                             err.args[1])
+            app.logger.error("generated by: %s", query)
+            success = 0
+        dubconn.commit()
+        cursor.close()
+        dubconn.close()
+    return division
 
 def get_project_items(ids, name_filter, extid_filter):
     """

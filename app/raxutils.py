@@ -31,6 +31,7 @@ SETTINGS_FILE = "/var/dubweb/.raxcloud_settings"
 RACK_AUTH_URL = "https://identity.api.rackspacecloud.com/v2.0/tokens"
 RACK_SRV_URL = "https://%s.servers.api.rackspacecloud.com/v2/%s/servers/detail?limit=300"
 DEFAULT_HOST_WEIGHT = 10
+MAX_LOAD_AVAIL_HOST = 7
 CACHE_HOURS = 24
 
 # settings
@@ -162,11 +163,26 @@ def check_host_capacity(dc_id, vmid, max_weight):
     for host in id_map.iterkeys():
         if vmid in id_map[host]:
             score = _calculate_vm_load(name_map[host])
-            if score <= max_weight:
+            if score <= int(max_weight):
                 retval = "OK"
             else:
                 retval = "OVERLOADED"
     return retval
+
+
+def get_overloaded_hosts(dc_id, max_weight):
+    """
+    Return a dictionary of hosts with load > default max.
+    """
+    datalist = []
+    if not max_weight:
+        max_weight = MAX_LOAD_AVAIL_HOST
+    id_map, name_map = retrieve_cloud_hostmap(dc_id, account_filter=None,
+                                              allow_cache=False)
+    for host in name_map.iterkeys():
+        if _calculate_vm_load(name_map[host]) > int(max_weight):
+            datalist.append(host)
+    return json.dumps(datalist)
 
 
 def get_vm_hostmap(dc_id, account_filter):

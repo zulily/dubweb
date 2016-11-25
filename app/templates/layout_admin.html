@@ -14,7 +14,7 @@ layout_admin.html - the layout template used by admin pages
     <link rel="stylesheet" media="all" type="text/css" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" />
     <link rel="stylesheet" media="all" type="text/css" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css" />
     <link rel="stylesheet" media="all" type="text/css" href="http://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.0/css/bootstrap-datepicker.standalone.css" />
-    <link rel="stylesheet" media="all" type="text/css" href="static/css/zulily_dash.css" />
+    <link rel="stylesheet" media="all" type="text/css" href="static/css/dub_dash.css" />
     <link rel="stylesheet" media="all" type="text/css" href="static/css/jsgrid.min.css" />
     <link rel="stylesheet" media="all" type="text/css" href="static/css/jsgrid-theme.min.css" />
 
@@ -32,6 +32,7 @@ var NAV = {
         $("#datetimestart").datepicker({ autoclose: true });
         $("#datetimeend").datepicker({  autoclose: true });
         NAV.prvdata = {{ asettings.prvarray|tojson|safe }};
+        NAV.divdata = {{ asettings.divhash|tojson|safe }};
         NAV.teamdata = {{ asettings.teamhash|tojson|safe }};
         NAV.prjdata = {{ asettings.prjdict|tojson|safe }};
         NAV.cloneflag = {{ asettings.enable_cloning|tojson|safe }};
@@ -47,6 +48,11 @@ var NAV = {
                 $('#prvdropdown').append('<li><a role="menuitem" tabindex="-1" data-value="'+key+'" >'+NAV.prvdata[key][0]+' ('+key+')</a></li>');
             };
         }, NAV.prvdata);
+        Object.keys(NAV.divdata).forEach(function(key,index) {
+            if (NAV.divdata[key]) {
+                $('#divdropdown').append('<li><a role="menuitem" tabindex="-1" data-value="'+key+'" >'+NAV.divdata[key]+' ('+key+')</a></li>');
+            };
+        }, NAV.divdata);
         Object.keys(NAV.teamdata).forEach(function(key,index) {
             if (NAV.teamdata[key]) {
                 $('#teamdropdown').append('<li><a role="menuitem" tabindex="-1" data-value="'+key+'" >'+NAV.teamdata[key]+' ('+key+')</a></li>');
@@ -142,6 +148,11 @@ var NAV = {
               </ul>
            </li>
            <li class="dropdown">
+            <a href="#" id="division" role="button" class="dropdown-toggle" data-toggle="dropdown">Divisions <span class="caret"></span></a>
+              <ul class="dropdown-menu" role="menu" aria-labelledby="division" id="divdropdown">
+              </ul>
+           </li>
+           <li class="dropdown">
             <a href="#" id="team" role="button" class="dropdown-toggle" data-toggle="dropdown">Teams <span class="caret"></span></a>
               <ul class="dropdown-menu" role="menu" aria-labelledby="team" id="teamdropdown">
               </ul>
@@ -168,6 +179,7 @@ var NAV = {
             <li><a href="/monthlyprovider.html"><i class="fa fa-dashboard"></i>Cost Charts</a></li>
             <li><a href="/budgets.html"><i class="fa fa-support"></i>Budget Administration</a></li>
             <li><a href="/providers.html"><i class="fa fa-support"></i>Provider Information</a></li>
+            <li><a href="/divisions.html"><i class="fa fa-support"></i>Division Administration</a></li>
             <li><a href="/teams.html"><i class="fa fa-support"></i>Team Administration</a></li>
             <li><a href="/projects.html"><i class="fa fa-support"></i>Project Administration</a></li>
           </ul>

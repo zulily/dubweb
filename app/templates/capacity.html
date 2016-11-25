@@ -1,7 +1,13 @@
 {% extends "layout_cap.html" %}
 {% block content %}
         <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-           <h4>Capacity Forecast</h4>
+           <h4>Capacity Forecast Estimation</h4>
+           <form class="form-inline">
+             <div class="form-group"> 
+               <label for="driver">Driver metric:</label>
+               <input class="form-control" type="text" id="driver" onchange="CHART.driverCb()" />
+             </div>
+           </form>
            <div id="chartContainer">
            </div>
         </div>
@@ -10,18 +16,40 @@
 var CHART = {
     onReady: function() {
         NAV.onReady();
-        CHART.estUrl="/data/capacity/estimates";
+        CHART.estUrl="/data/capacity/model";
         CHART.actUrl="/data/capacity/actuals";
         CHART.svg = dimple.newSvg("#chartContainer",590,400);
         CHART.promptValues();
     },
 
-    promptValues: function() {
-        $('#capacity').trigger('click');
-        alert("Choose a Capacity Metric, then select Go");
+    driverCb: function(){
+        var new_driver = $("#driver").val();
+        if (new_driver) {
+            CHART.calcEstimateSet(new_driver);
+        } else {
+            $('#driver').val(CHART.driver);
+            CHART.calcEstimateSet(CHART.driver);
+        }
     },
 
-    drawGraphs: function (estdata) {
+    promptValues: function() {
+        $('#capacity').trigger('click');
+        alert("Choose a Capacity Metric, pick a date, then select Go");
+    },
+  
+    calcEstimateSet: function(driverval) {
+        var chartdata = [];
+        Object.keys(CHART.model).forEach(function(time) {
+           var datapt = {}; 
+           datapt["Metric"] = CHART.name;
+           datapt["Period"] = time;
+           datapt["Value"] = driverval * CHART.coef * CHART.model[time];
+           chartdata.push(datapt);
+        });
+        CHART.drawGraph(chartdata);
+    },
+
+    drawGraph: function (estdata) {
         CHART.svg.selectAll("*").remove();
         CHART.dubdata = estdata;
         CHART.dchart = new dimple.chart(CHART.svg, CHART.dubdata);
@@ -29,15 +57,22 @@ var CHART = {
         xAxis = CHART.dchart.addTimeAxis("x", "Period","%H:%M", "%H");
         CHART.dchart.addMeasureAxis("y", "Value");
         s1 = CHART.dchart.addSeries("Metric", dimple.plot.line);
-        s1.data = CHART.estdata;
         CHART.mylegend = CHART.dchart.addLegend(60, 20, 510, 20, "right");
-        CHART.dchart.draw();
+        CHART.dchart.assignColor(CHART.name,"#80B1D3", null, 1);
+        if (CHART.actdata) {
+            CHART.addActuals(CHART.actdata);
+        } else {
+            CHART.dchart.draw();
+       }
     },
 
     addActuals: function (actdata) {
-        CHART.actdata = actdata;
-        a1 = CHART.dchart.addSeries("Metric", dimple.plot.bar);
-        a1.data = CHART.actdata;
+        if (CHART.actseries)  {
+            CHART.actseries.shapes.remove();
+        }
+        CHART.actseries = CHART.dchart.addSeries("Metric", dimple.plot.bar);
+        CHART.actseries.data = actdata;
+        CHART.dchart.assignColor(actdata[0]["Metric"],"#FB8072", null, 0.05);
         CHART.dchart.draw();
     },
 
@@ -52,7 +87,16 @@ var CHART = {
             cache: true,
             timeout: 30000,
             success: function(data) {
-                CHART.drawGraphs(data);
+               for (var inst in data) { 
+                   CHART.driver = data[inst]["driver"];
+                   CHART.model = data[inst]["model"];
+                   $('#driver').val(CHART.driver);
+                   Object.keys(data[inst]["coef"]).forEach(function(key) {
+                       CHART.name = key;
+                       CHART.coef = data[inst]["coef"][key];
+                   });
+                   CHART.calcEstimateSet(CHART.driver);
+               }
             },
             error: function(){
                 setTimeout(CHART.loadEstData, 5000);
@@ -71,7 +115,8 @@ var CHART = {
             cache: true,
             timeout: 30000,
             success: function(data) {
-                CHART.addActuals(data);
+                CHART.actdata = data;
+                CHART.addActuals(CHART.actdata);
             },
             error: function(){
                 setTimeout(CHART.loadActData, 5000);

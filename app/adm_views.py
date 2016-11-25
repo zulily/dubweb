@@ -33,6 +33,12 @@ def admin_projects():
          """
     return render_template('projects.html')
 
+@app.route('/divisions.html')
+def admin_divisions():
+    """  Divisions web page with data grid
+         """
+    return render_template('divisions.html')
+
 @app.context_processor
 def load_adm_dropdowns():
     """  Load the data structures needed for layout.html pages"""
@@ -47,10 +53,13 @@ def load_adm_dropdowns():
                                            dub_conn=db_conn)
         settings['providers'] = [item[0] for item in providers.values()]
         settings['prvarray'] = providers
-        teams = dubwebdb.get_teams(team_id=None, dub_conn=db_conn)
+        divisions = dubwebdb.get_divisions(div_ids=None, dub_conn=db_conn)
+        settings['divisions'] = [item for item in divisions.values()]
+        settings['divhash'] = divisions
+        teams = dubwebdb.get_teams(team_ids=None, dub_conn=db_conn)
         settings['teams'] = [item for item in teams.values()]
         settings['teamhash'] = teams
-        projects = dubwebdb.get_projects(provider_id=None, team_id=None,
+        projects = dubwebdb.get_projects(provider_id=None, team_ids=None,
                                          project_id=None, dub_conn=db_conn)
         settings['projects'] = [item[0] for item in projects.values()]
         settings['prjdict'] = projects

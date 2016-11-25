@@ -9,11 +9,18 @@ import app.capdb as capdb
 
 @app.route('/data/rackspace/host_check')
 def cloud_host_check():
-    """ API for Rackspace host overload check """
+    """ API for Rackspace VM overload check """
     mydc = request.args.get('dc')
     myvmid = request.args.get('vmid')
     myweight = request.args.get('max_weight')
     return raxutils.check_host_capacity(mydc, myvmid, myweight)
+
+@app.route('/data/rackspace/host_overload')
+def cloud_host_overload_check():
+    """ API for Rackspace host overload check """
+    mydc = request.args.get('dc')
+    myweight = request.args.get('max_weight')
+    return raxutils.get_overloaded_hosts(mydc, myweight)
 
 @app.route('/data/rackspace/hostmap')
 def cloud_host_map():
@@ -35,7 +42,7 @@ def capacity_model():
     """ API for Capacity Forecast chart """
     myids = request.args.get('ids')
     mydate = request.args.get('opt_date')
-    return capdb.get_capacity_model(myids)
+    return capdb.get_capacity_model(myids, mydate)
 
 @app.route('/data/capacity/actuals')
 def capacity_actuals():
