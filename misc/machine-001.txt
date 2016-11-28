@@ -1,0 +1,18 @@
+# GCE settings
+
+# SET YOUR PROJECT AND ZONE !!!
+project=(Your Google Project ID)
+zone=(Desired Google GCE zone)
+
+# VM details
+machine_name=machine-001
+machine_image=/coreos-cloud/coreos-stable-1185-3-0-v20161101
+machine_type=n1-standard-2
+machine_boot_disk_sz=10
+machine_boot_disk_type=pd-ssd
+# optional data disk (delete lines if not used)
+machine_data_disk_sz=500
+machine_data_disk_name=machine-001-data
+machine_data_disk_type=pd-standard
+# comma separated list
+machine_tags=foo,bar
