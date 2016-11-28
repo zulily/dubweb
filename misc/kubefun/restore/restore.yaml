@@ -1,0 +1,78 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: autorestore-pv
+  namespace: (your namespace)
+spec:
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Recycle
+  capacity:
+    storage: (at least 2.5 times DB size)
+  gcePersistentDisk:
+    pdName: "restore-pv"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: autorestore-pv1-claim
+  namespace: (your namespace)
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: (at least 2.5 times DB size)
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    name: autorestore
+  name: autorestore
+  namespace: (your namespace)
+spec:
+  containers:
+  - env:
+    - name: BACKUP_TYPE
+      value: mysql
+    - name: PORT
+      value: "3306"
+    - name: HOST
+      value: (preferred mysql host)
+    - name: USER
+      value: (account with remote access)
+    - name: PASS
+      value: (password for USER account)
+    - name: DB
+      value: (optional database name)
+    - name: ACCT
+      value: (email address of service account used for copy)
+    - name: BUCKET
+      value: gs://your-GCS-bucketname
+    - name: SECRET_PHRASE
+      valueFrom:
+        secretKeyRef:
+          name: backupsecrets
+          key: phrase
+    image: path-to-your-docker-image
+    imagePullPolicy: Always
+    name: autorestore
+    resources:
+      limits:
+        cpu: "1"
+      requests:
+        cpu: "1"
+    volumeMounts:
+    - mountPath: /restore
+      name: mnt-restore
+    - mountPath: /secrets
+      name: secrets
+      readOnly: true
+  volumes:
+  - name: mnt-restore
+    persistentVolumeClaim:
+      claimName: autorestore-pv1-claim
+  - name: secrets
+    secret:
+      secretName: backupsecrets

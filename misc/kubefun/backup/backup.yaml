@@ -1,0 +1,82 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: autobackup-pv1 
+  namespace: (your namespace)
+spec:
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Recycle
+  capacity:
+    storage: (at least 2.5 times DB size)
+  gcePersistentDisk:
+    pdName: "backup-pv"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: autobackup-pv1-claim
+  namespace: (your namespace)
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: (at least 2.5 times DB size)
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    name: autobackup
+  name: autobackup
+  namespace: (your namespace)
+spec:
+  containers:
+  - env:
+    - name: CRON_SCHEDULE
+      value: "30 0 * * *"
+    - name: BACKUP_TYPE
+      value: mongo
+    - name: BACKUP_RETENTION_TIME_IN_DAYS
+      value: "1"
+    - name: PORT
+      value: "27017"
+    - name: HOST
+      value: (preferred mongo host)
+    - name: USER
+      value: (account with remote access)
+    - name: PASS
+      value: (password for USER account)
+    - name: DB
+      value: (required for mongo, database name)
+    - name: ACCT
+      value: (email address of service account used for copy)
+    - name: BUCKET
+      value: gs://your-GCS-bucketname
+    - name: SECRET_PHRASE
+      valueFrom:
+        secretKeyRef:
+          name: backupsecrets
+          key: phrase
+    image: path-to-your-docker-image
+    imagePullPolicy: Always
+    name: autobackup
+    resources:
+      limits:
+        cpu: "1"
+      requests:
+        cpu: "1"
+    volumeMounts:
+    - mountPath: /backup
+      name: mnt-backup
+    - mountPath: /secrets
+      name: secrets
+      readOnly: true
+  volumes:
+  - name: mnt-backup
+    persistentVolumeClaim:
+      claimName: autobackup-pv1-claim
+  - name: secrets
+    secret:
+      secretName: backupsecrets
