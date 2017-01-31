@@ -96,8 +96,11 @@ def get_providers(provider_id, dub_conn):
             SELECT prvid, prvname, lastetl, taxrate FROM providers 
             """
     if provider_id is not None:
-        query += " WHERE prvid = %s"
-        query_params.append(str(provider_id))
+        myformat = ','.join(['%s'] * len(provider_id)) + ')'
+        query += " WHERE prvid IN ("
+        query += myformat
+        for prv_val in provider_id:
+            query_params.append(int(prv_val))
 
     rows = None
     cursor = dub_conn.cursor()
@@ -134,7 +137,7 @@ def get_teams(team_ids, dub_conn):
         query += " AND teamid IN ("
         query += myformat
         for teamval in team_ids:
-            query_params.append(teamval)
+            query_params.append(int(teamval))
     cursor = dub_conn.cursor()
     try:
         if query_params:
@@ -169,7 +172,7 @@ def lookup_divisions(team_ids, dub_conn):
         query += " AND teamid IN ("
         query += myformat
         for teamval in team_ids:
-            query_params.append(teamval)
+            query_params.append(int(teamval))
     cursor = dub_conn.cursor()
     try:
         if query_params:
@@ -204,7 +207,7 @@ def set_teams_from_divs(ids, dub_conn):
         query += " AND divid IN ("
         query += myformat
         for divval in ids.div:
-            query_params.append(divval)
+            query_params.append(int(divval))
     cursor = dub_conn.cursor()
     try:
         if query_params:
@@ -239,7 +242,7 @@ def get_divisions(div_ids, dub_conn):
         query += " AND divid IN ("
         query += myformat
         for divval in div_ids:
-            query_params.append(divval)
+            query_params.append(int(divval))
     cursor = dub_conn.cursor()
     try:
         if query_params:
@@ -270,17 +273,20 @@ def get_projects(provider_id, team_ids, project_id, dub_conn):
             SELECT prjid, extname, extid, prvid FROM projects WHERE 1
             """
     if provider_id is not None:
-        query += " AND prvid = %s "
-        query_params.append(str(provider_id))
+        myformat = ','.join(['%s'] * len(provider_id)) + ')'
+        query += " AND prvid IN ("
+        query += myformat
+        for prv_val in provider_id:
+            query_params.append(int(prv_val))
     if team_ids is not None:
         myformat = ','.join(['%s'] * len(team_ids)) + ')'
         query += " AND teamid IN ("
         query += myformat
         for teamval in team_ids:
-            query_params.append(teamval)
+            query_params.append(int(teamval))
     if project_id is not None:
         query += " AND prjid = %s"
-        query_params.append(str(project_id))
+        query_params.append(int(project_id))
 
     cursor = dub_conn.cursor()
     try:
@@ -309,18 +315,17 @@ def get_budget_by_providers(ids, dub_conn):
     query = "SELECT month, CAST(IFNULL(sum(budget),0) AS SIGNED INT), prvid"
     query += " FROM budgetdata WHERE 1 "
     if ids.team is not None:
-        if isinstance(ids.team, int):
-            query += " AND teamid = %s "
-            query_params.append(int(ids.team))
-        else:
-            myformat = ','.join(['%s'] * len(ids.team)) + ')'
-            query += " AND teamid IN ("
-            query += myformat
-            for teamval in ids.team:
-                query_params.append(teamval)
+        myformat = ','.join(['%s'] * len(ids.team)) + ')'
+        query += " AND teamid IN ("
+        query += myformat
+        for teamval in ids.team:
+            query_params.append(int(teamval))
     if ids.prv is not None:
-        query += " AND prvid = %s "
-        query_params.append(str(ids.prv))
+        myformat = ','.join(['%s'] * len(ids.prv)) + ')'
+        query += " AND prvid IN ("
+        query += myformat
+        for prv_val in ids.prv:
+            query_params.append(int(prv_val))
     query += " GROUP BY prvid, month"
 
     return utils.get_from_db(query, tuple(query_params), dub_conn)
@@ -339,18 +344,17 @@ def get_response_dict(ids, dub_conn):
                WHERE 1
             """
     if ids.team is not None:
-        if isinstance(ids.team, int):
-            query += " AND teamid = %s "
-            query_params.append(int(ids.team))
-        else:
-            myformat = ','.join(['%s'] * len(ids.team)) + ')'
-            query += " AND teamid IN ("
-            query += myformat
-            for teamval in ids.team:
-                query_params.append(teamval)
+        myformat = ','.join(['%s'] * len(ids.team)) + ')'
+        query += " AND teamid IN ("
+        query += myformat
+        for teamval in ids.team:
+            query_params.append(int(teamval))
     if ids.prv is not None:
-        query += " AND budgetdata.prvid = %s "
-        query_params.append(str(ids.prv))
+        myformat = ','.join(['%s'] * len(ids.prv)) + ')'
+        query += " AND budgetdata.prvid IN ("
+        query += myformat
+        for prv_val in ids.prv:
+            query_params.append(int(prv_val))
     responses = utils.get_from_db(query, tuple(query_params), dub_conn)
     for row in responses:
         data_points[row[0]][row[1]][row[2]] = row[3]
@@ -447,10 +451,13 @@ def get_budget_by_teams(ids, dub_conn):
         query += " AND teamid IN ("
         query += myformat
         for teamval in ids.team:
-            query_params.append(teamval)
+            query_params.append(int(teamval))
     if ids.prv is not None:
-        query += " AND prvid = %s "
-        query_params.append(str(ids.prv))
+        myformat = ','.join(['%s'] * len(ids.prv)) + ')'
+        query += " AND prvid IN ("
+        query += myformat
+        for prv_val in ids.prv:
+            query_params.append(int(prv_val))
     query += " GROUP BY teamid, month"
 
     return utils.get_from_db(query, tuple(query_params), dub_conn)
@@ -515,7 +522,7 @@ def get_provider_metric_buckets(provider_id, dub_conn):
             WHERE prvid = %s
             ORDER BY rank ASC 
             """
-    query_params.append(str(provider_id))
+    query_params.append(int(provider_id))
 
     rows = None
     cursor = dub_conn.cursor()
@@ -761,7 +768,7 @@ def gen_over_under_table(data_set, ids, mytime, dubconn, table_str):
             overunder = value - budget
             datarow.extend([overunder])
             try:
-                response = responses[int(ids.team)][p_key][month]
+                response = responses[int(ids.team[0])][p_key][month]
             except KeyError:
                 response = None
             datarow.extend([response])
@@ -847,16 +854,15 @@ def get_budget_over_under(my_time, ids):
         providers = get_providers(ids.prv, dubconn)
         teams = get_teams(ids.team, dubconn)
         if ids.team is not None:
-            tmp_ids = ids
+            tmp_id = ids
             for teamval in ids.team:
-                tmp_ids.team = int(teamval)
+                tmp_id.team = [teamval]
                 data_points = defaultdict(dict)
-                dubs = get_data_general(mytime, tmp_ids, dubconn,
+                dubs = get_data_general(mytime, tmp_id, dubconn,
                                         group_by="prvid")
                 for dub in dubs:
                     data_points[providers[dub[1]][0]][dub[0]] = dub[2]
-
-                datalist += gen_over_under_table(data_points, ids,
+                datalist += gen_over_under_table(data_points, tmp_id,
                                                  mytime, dubconn,
                                                  teams[int(teamval)] + ":")
 
@@ -976,13 +982,16 @@ def get_data_item_cost(my_time, ids):
             query += " AND md.teamid IN ("
             query += myformat
             for teamval in ids.team:
-                query_params.append(teamval)
+                query_params.append(int(teamval))
         if ids.project is not None:
             query += " AND md.prjid = %s "
             query_params.append(int(ids.project))
         if ids.prv is not None:
-            query += " AND md.prvid = %s "
-            query_params.append(int(ids.prv))
+            myformat = ','.join(['%s'] * len(ids.prv)) + ')'
+            query += " AND md.prvid IN ("
+            query += myformat
+            for prv_val in ids.prv:
+                query_params.append(int(prv_val))
         query += " GROUP by DATE_FORMAT(md.datetime,%s), md.metric "
         query += " ORDER BY md.teamid, md.prvid, md.prjid, md.metric, "
         query += " DATE_FORMAT(md.datetime,%s)"
@@ -1013,21 +1022,20 @@ def get_data_general(my_time, ids, dubconn, group_by):
     query_params.append(my_time.start)
     query_params.append(my_time.end)
     if ids.team is not None:
-        if isinstance(ids.team, int):
-            query += " AND teamid = %s "
-            query_params.append(int(ids.team))
-        else:
-            myformat = ','.join(['%s'] * len(ids.team)) + ')'
-            query += " AND teamid IN ("
-            query += myformat
-            for teamval in ids.team:
-                query_params.append(teamval)
+        myformat = ','.join(['%s'] * len(ids.team)) + ')'
+        query += " AND teamid IN ("
+        query += myformat
+        for teamval in ids.team:
+            query_params.append(int(teamval))
     if ids.project is not None:
         query += " AND prjid = %s "
-        query_params.append(str(ids.project))
+        query_params.append(int(ids.project))
     if ids.prv is not None:
-        query += " AND prvid = %s "
-        query_params.append(str(ids.prv))
+        myformat = ','.join(['%s'] * len(ids.prv)) + ')'
+        query += " AND prvid IN ("
+        query += myformat
+        for prv_val in ids.prv:
+            query_params.append(int(prv_val))
     query += " GROUP BY " + group_by
     query += " , DATE_FORMAT(datetime,%s)"
     query_params.append(my_time.dformat)
@@ -1183,6 +1191,7 @@ def get_data_project(my_time, ids, add_budget):
 def get_data_workload(mytime, ids, add_budget):
     """
     Return dubweb values for each workload, by given time period.
+    Note: Workload is restricted to one provider and project.
     """
     buckets = {}
     met_sums = defaultdict(dict)
@@ -1196,6 +1205,7 @@ def get_data_workload(mytime, ids, add_budget):
                                                 settings['db_db'])
 
     if success:
+        ids.prv = ids.prv[0]
         mytime = get_date_filters(mytime)
         buckets = get_provider_metric_buckets(ids.prv, dubconn)
 
@@ -1208,8 +1218,8 @@ def get_data_workload(mytime, ids, add_budget):
         query_params.append(mytime.dformat)
         query_params.append(mytime.start)
         query_params.append(mytime.end)
-        query_params.append(str(ids.prv))
-        query_params.append(str(ids.project))
+        query_params.append(int(ids.prv))
+        query_params.append(int(ids.project))
         query_params.append(mytime.dformat)
 
         dubmetrics = utils.get_from_db(query, query_params, dubconn)
@@ -1268,14 +1278,20 @@ def estimate_data_provider(mytime, ids, add_budget):
         query_params.append(def_time.start)
         query_params.append(def_time.end)
         if ids.team is not None:
-            query += " AND teamid = %s "
-            query_params.append(str(ids.team))
+            myformat = ','.join(['%s'] * len(ids.team)) + ')'
+            query += " AND teamid IN ("
+            query += myformat
+            for teamval in ids.team:
+                query_params.append(int(teamval))
         if ids.project is not None:
             query += " AND prjid = %s "
-            query_params.append(str(ids.project))
+            query_params.append(int(ids.project))
         if ids.prv is not None:
-            query += " AND prvid = %s "
-            query_params.append(str(ids.prv))
+            myformat = ','.join(['%s'] * len(ids.prv)) + ')'
+            query += " AND prvid IN ("
+            query += myformat
+            for prv_val in ids.prv:
+                query_params.append(int(prv_val))
         query += " GROUP BY prvid, DATE_FORMAT(datetime,%s)"
         query_params.append("%Y-%m-%d")
 
@@ -1329,14 +1345,20 @@ def estimate_data_team(mytime, ids, add_budget):
         query_params.append(def_time.start)
         query_params.append(def_time.end)
         if ids.team is not None:
-            query += " AND teamid = %s "
-            query_params.append(str(ids.team))
+            myformat = ','.join(['%s'] * len(ids.team)) + ')'
+            query += " AND teamid IN ("
+            query += myformat
+            for teamval in ids.team:
+                query_params.append(int(teamval))
         if ids.project is not None:
             query += " AND prjid = %s "
-            query_params.append(str(ids.project))
+            query_params.append(int(ids.project))
         if ids.prv is not None:
-            query += " AND prvid = %s "
-            query_params.append(str(ids.prv))
+            myformat = ','.join(['%s'] * len(ids.prv)) + ')'
+            query += " AND prvid IN ("
+            query += myformat
+            for prv_val in ids.prv:
+                query_params.append(int(prv_val))
         query += " GROUP BY teamid, DATE_FORMAT(datetime,%s)"
         query_params.append("%Y-%m-%d")
 
