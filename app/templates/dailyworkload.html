@@ -96,7 +96,8 @@ var CHART = {
                 //setTimeout(loadChart, 60000);
             },
             error: function(){
-                setTimeout(CHART.loadChart, 5000);
+		// avoid recalling when API has invalid values/response    
+                //setTimeout(CHART.loadChart.bind(null, qstring), 5000);
             }
         });
     }

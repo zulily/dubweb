@@ -410,8 +410,8 @@ def edit_team_item(ids, my_teamname):
                 """
         cursor = dubconn.cursor()
         try:
-            cursor.execute(query, (team['Name'], team['ID'],
-                                   team['DivisionID']))
+            cursor.execute(query, (team['Name'], team['DivisionID'],
+                                   team['ID']))
         except Exception, err:
             app.logger.error("mysql exception: [%d]:  %s", err.args[0],
                              err.args[1])

@@ -368,7 +368,7 @@ def date_in_range(date_str, start_ts, end_ts):
     """
     curdate = parser.parse(date_str + "-01 00:00:00")
     cur_ts = time.mktime(curdate.timetuple())
-    if start_ts <= cur_ts <= end_ts:
+    if int(start_ts) <= cur_ts <= int(end_ts):
         return True
     else:
         return False
@@ -735,6 +735,7 @@ def gen_over_under_table(data_set, ids, mytime, dubconn, table_str):
     """
     monthvals = {}
     monthbudgets = {}
+    monthoverunders = {}
     datarow = []
     datalist = []
 
@@ -745,6 +746,7 @@ def gen_over_under_table(data_set, ids, mytime, dubconn, table_str):
     datarow = [table_str]
     for month in month_arr:
         datarow.extend([month + " Actuals"])
+        datarow.extend([month + " Budget"])
         datarow.extend([month + " Over/(-)Under Budget"])
         datarow.extend([month + " Response"])
     datarow.extend(["Subtotal"])
@@ -765,6 +767,7 @@ def gen_over_under_table(data_set, ids, mytime, dubconn, table_str):
                 budget = int(budgets[p_key][month])
             except KeyError:
                 budget = 0
+            datarow.extend([budget])
             overunder = value - budget
             datarow.extend([overunder])
             try:
@@ -777,9 +780,13 @@ def gen_over_under_table(data_set, ids, mytime, dubconn, table_str):
             except KeyError:
                 monthvals[month] = value
             try:
-                monthbudgets[month] += overunder
+                monthbudgets[month] += budget
             except KeyError:
-                monthbudgets[month] = overunder
+                monthbudgets[month] = budget
+            try:
+                monthoverunders[month] += overunder
+            except KeyError:
+                monthoverunders[month] = overunder
         datarow.extend([data_sum])
         datalist.append(datarow)
 
@@ -789,7 +796,8 @@ def gen_over_under_table(data_set, ids, mytime, dubconn, table_str):
     for month in month_arr:
         try:
             total += monthvals[month]
-            datarow.extend([monthvals[month], monthbudgets[month], None])
+            datarow.extend([monthvals[month], monthbudgets[month],
+                            monthoverunders[month], None])
         except KeyError:
             datarow.extend([0])
     datarow.extend([total])

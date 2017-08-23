@@ -40,13 +40,30 @@ var NAV = {
         $("button#submit").click( NAV.submitCb );
         $("#cb").click ( NAV.clearDateCb );
         $('#provider').multiselect({
+            includeSelectAllOption: true,
             nonSelectedText: 'All Providers'
         });
         $('#team').multiselect({
+            includeSelectAllOption: true,
             nonSelectedText: 'All Teams'
         });
         $('#project').multiselect({
+            includeSelectAllOption: true,
             nonSelectedText: 'All Projects'
+        });
+        $('#provider').change(function() {
+            var options = [];
+            var prv = $(this).val();
+            Object.keys(NAV.prjdata).forEach(function(key,index) {
+                if (prv.includes(String(NAV.prjdata[key][2]))) {
+                    var opt = {};
+                    opt['label'] = NAV.prjdata[key][0];
+                    opt['title'] = NAV.prjdata[key][0];
+                    opt['value'] = key;
+                    options.push(opt);
+                };
+            }, NAV.prjdata);
+            $('#project').multiselect('dataprovider',options);
         });
     },
      
